@@ -4,14 +4,14 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title ""
-Date ""
-Rev ""
-Comp ""
-Comment1 ""
-Comment2 ""
-Comment3 ""
-Comment4 ""
+Title "Placa de control para brazo robótico de 3 GDL."
+Date "2023-06-19"
+Rev "0.3.4"
+Comp "Universidad Nacional de Cuyo (UNCuyo)"
+Comment1 "Fines de carrera opticos normalmente cerrados (NC)"
+Comment2 "Revisar configuración del STM32cubeIDE"
+Comment3 "Legajo: 11807  estudiante de ingeniería en Mecatrónica"
+Comment4 "Alumno: Mario Stefano Papetti Funes"
 $EndDescr
 $Comp
 L Device:R_US R1
@@ -187,15 +187,13 @@ Wire Wire Line
 	3250 6550 2300 6550
 Wire Wire Line
 	2300 6450 3250 6450
-Text GLabel 6250 5800 0    50   Input ~ 0
+Text GLabel 5700 5700 0    50   Input ~ 0
 StepY
-Text GLabel 6250 5900 0    50   Input ~ 0
+Text GLabel 5650 6200 0    50   Input ~ 0
 DirY
-Text GLabel 6400 6050 0    50   Input ~ 0
-StepZ
-Text GLabel 6400 6150 0    50   Input ~ 0
+Text GLabel 5650 6050 0    50   Input ~ 0
 DirZ
-Text GLabel 6100 5650 0    50   Input ~ 0
+Text GLabel 5650 6350 0    50   Input ~ 0
 DirX
 $Comp
 L Connector_Generic:Conn_01x03 J10
@@ -232,30 +230,6 @@ F 3 "" H 5750 7300 50  0001 C CNN
 $EndComp
 Text GLabel 6100 6650 2    50   Input ~ 0
 Gripper
-Text GLabel 6100 5550 0    50   Input ~ 0
-StepX
-Wire Wire Line
-	6700 5400 6700 6150
-Wire Wire Line
-	6700 6150 6400 6150
-Wire Wire Line
-	6250 5900 6600 5900
-Wire Wire Line
-	6600 5900 6600 5400
-Wire Wire Line
-	6500 5400 6500 5650
-Wire Wire Line
-	6500 5650 6100 5650
-Wire Wire Line
-	6100 5550 6200 5550
-Wire Wire Line
-	6200 5550 6200 5400
-Wire Wire Line
-	6250 5800 6300 5800
-Wire Wire Line
-	6300 5800 6300 5400
-Wire Wire Line
-	6400 5400 6400 6050
 Text GLabel 5700 3600 0    50   Input ~ 0
 Gripper
 $Comp
@@ -2345,4 +2319,47 @@ Wire Wire Line
 	5950 6700 6000 6650
 Wire Wire Line
 	6000 6650 6100 6650
+NoConn ~ 5900 5400
+NoConn ~ 6000 5400
+NoConn ~ 6100 5400
+Text GLabel 5700 5850 0    50   Input ~ 0
+StepX
+Text GLabel 5700 5550 0    50   Input ~ 0
+StepZ
+Wire Wire Line
+	5700 5550 6350 5550
+Wire Wire Line
+	6350 5550 6400 5500
+Wire Wire Line
+	6400 5500 6400 5400
+Wire Wire Line
+	5700 5700 6250 5700
+Wire Wire Line
+	6250 5700 6300 5650
+Wire Wire Line
+	6300 5650 6300 5400
+Wire Wire Line
+	6200 5400 6200 5800
+Wire Wire Line
+	6200 5800 6150 5850
+Wire Wire Line
+	6150 5850 5700 5850
+Wire Wire Line
+	6650 6050 6700 6000
+Wire Wire Line
+	5650 6050 6650 6050
+Wire Wire Line
+	6700 5400 6700 6000
+Wire Wire Line
+	6600 6150 6550 6200
+Wire Wire Line
+	5650 6200 6550 6200
+Wire Wire Line
+	6600 5400 6600 6150
+Wire Wire Line
+	6500 6300 6450 6350
+Wire Wire Line
+	6500 5400 6500 6300
+Wire Wire Line
+	5650 6350 6450 6350
 $EndSCHEMATC

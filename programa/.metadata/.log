@@ -1,113 +1,36 @@
-!SESSION 2023-05-17 12:39:02.146 -----------------------------------------------
+!SESSION 2023-06-19 15:57:16.897 -----------------------------------------------
 eclipse.buildId=Version 1.9.0
 java.version=11.0.11
 java.vendor=AdoptOpenJDK
 BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=es_AR
 Command-line arguments:  -os win32 -ws win32 -arch x86_64
 
-!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2023-05-17 12:39:22.968
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2023-06-19 15:57:42.661
 !MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
 
-!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2023-05-17 12:39:23.273
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2023-06-19 15:57:42.955
 !MESSAGE Log4j initialized with config file E:\UNCuyo\Cursadas\Microcontroladores y Electronica de potencia\robotArm\robot_arm\programa\.metadata\.log4j.xml
 
-!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2023-05-17 12:39:32.699
-!MESSAGE Started RMI Server, listening on port 41337
-
-!ENTRY org.eclipse.cdt.core 1 0 2023-05-17 12:42:57.512
-!MESSAGE Indexed 'robotArm' (3 sources, 53 headers) in 2.85 sec: 1,949 declarations; 2,810 references; 0 unresolved inclusions; 1 syntax errors; 2 unresolved names (0.042%)
-
-!ENTRY org.eclipse.ui 4 0 2023-05-17 13:23:35.920
-!MESSAGE Unhandled event loop exception
-!STACK 0
-java.lang.NullPointerException
-	at com.st.stm32cube.common.mx.oss.core.awtswtbridge.AwtEnvironment.getShell(AwtEnvironment.java:281)
-	at com.st.stm32cube.common.mx.oss.core.awtswtbridge.SwtInputBlocker.block(SwtInputBlocker.java:98)
-	at com.st.stm32cube.common.mx.oss.core.awtswtbridge.AwtEnvironment.invokeAwt(AwtEnvironment.java:179)
-	at com.st.stm32cube.common.mx.oss.core.awtswtbridge.EmbeddedSwingComposite$3.widgetDisposed(EmbeddedSwingComposite.java:244)
-	at org.eclipse.swt.widgets.TypedListener.handleEvent(TypedListener.java:127)
-	at org.eclipse.swt.widgets.EventTable.sendEvent(EventTable.java:89)
-	at org.eclipse.swt.widgets.Display.sendEvent(Display.java:4243)
-	at org.eclipse.swt.widgets.Widget.sendEvent(Widget.java:1060)
-	at org.eclipse.swt.widgets.Widget.sendEvent(Widget.java:1084)
-	at org.eclipse.swt.widgets.Widget.sendEvent(Widget.java:1065)
-	at org.eclipse.swt.widgets.Widget.release(Widget.java:809)
-	at org.eclipse.swt.widgets.Composite.releaseChildren(Composite.java:925)
-	at org.eclipse.swt.widgets.Canvas.releaseChildren(Canvas.java:168)
-	at org.eclipse.swt.widgets.Decorations.releaseChildren(Decorations.java:713)
-	at org.eclipse.swt.widgets.Shell.releaseChildren(Shell.java:1378)
-	at org.eclipse.swt.widgets.Widget.release(Widget.java:816)
-	at org.eclipse.swt.widgets.Widget.dispose(Widget.java:423)
-	at org.eclipse.swt.widgets.Decorations.dispose(Decorations.java:392)
-	at org.eclipse.swt.widgets.Display.release(Display.java:3688)
-	at org.eclipse.swt.graphics.Device.dispose(Device.java:324)
-	at org.eclipse.ui.internal.ide.application.IDEApplication.start(IDEApplication.java:168)
-	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:203)
-	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:136)
-	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:104)
-	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:401)
-	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:255)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
-	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:659)
-	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:596)
-	at org.eclipse.equinox.launcher.Main.run(Main.java:1467)
-!SESSION 2023-05-17 13:26:34.019 -----------------------------------------------
-eclipse.buildId=Version 1.9.0
-java.version=11.0.11
-java.vendor=AdoptOpenJDK
-BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=es_AR
-Command-line arguments:  -os win32 -ws win32 -arch x86_64
-
-!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2023-05-17 13:27:22.668
-!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
-
-!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2023-05-17 13:27:23.084
-!MESSAGE Log4j initialized with config file E:\UNCuyo\Cursadas\Microcontroladores y Electronica de potencia\robotArm\robot_arm\programa\.metadata\.log4j.xml
-
-!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2023-05-17 13:27:53.728
-!MESSAGE Started RMI Server, listening on port 41337
-!SESSION 2023-05-23 16:57:40.603 -----------------------------------------------
-eclipse.buildId=Version 1.9.0
-java.version=11.0.11
-java.vendor=AdoptOpenJDK
-BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=es_AR
-Command-line arguments:  -os win32 -ws win32 -arch x86_64
-
-!ENTRY org.eclipse.core.resources 2 10035 2023-05-23 16:58:00.138
-!MESSAGE The workspace exited with unsaved changes in the previous session; refreshing workspace to recover changes.
-
-!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2023-05-23 16:58:14.429
-!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
-
-!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2023-05-23 16:58:14.763
-!MESSAGE Log4j initialized with config file E:\UNCuyo\Cursadas\Microcontroladores y Electronica de potencia\robotArm\robot_arm\programa\.metadata\.log4j.xml
-
-!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2023-05-23 16:59:08.747
-!MESSAGE Started RMI Server, listening on port 41337
-
-!ENTRY org.eclipse.cdt.core 1 0 2023-05-24 11:25:57.170
-!MESSAGE Indexed 'pap' (19 sources, 78 headers) in 7.21 sec: 3,643 declarations; 13,268 references; 0 unresolved inclusions; 1 syntax errors; 2 unresolved names (0.012%)
-
-!ENTRY org.eclipse.cdt.core 1 0 2023-05-24 11:26:19.516
-!MESSAGE Indexed 'blink_test' (19 sources, 78 headers) in 4.46 sec: 3,643 declarations; 13,255 references; 0 unresolved inclusions; 1 syntax errors; 2 unresolved names (0.012%)
-!SESSION 2023-06-18 22:02:37.104 -----------------------------------------------
-eclipse.buildId=Version 1.9.0
-java.version=11.0.11
-java.vendor=AdoptOpenJDK
-BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=es_AR
-Command-line arguments:  -os win32 -ws win32 -arch x86_64
-
-!ENTRY org.eclipse.core.resources 2 10035 2023-06-18 22:02:59.011
-!MESSAGE The workspace exited with unsaved changes in the previous session; refreshing workspace to recover changes.
-
-!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2023-06-18 22:03:02.553
-!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
-
-!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2023-06-18 22:03:02.678
-!MESSAGE Log4j initialized with config file E:\UNCuyo\Cursadas\Microcontroladores y Electronica de potencia\robotArm\robot_arm\programa\.metadata\.log4j.xml
-
-!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2023-06-18 22:03:36.661
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2023-06-19 15:57:48.853
 !MESSAGE Started RMI Server, listening on port 41338
+
+!ENTRY org.eclipse.cdt.core 1 0 2023-06-19 15:59:28.325
+!MESSAGE Indexed 'EjeX-StopX' (19 sources, 78 headers) in 7.7 sec: 3,643 declarations; 13,255 references; 0 unresolved inclusions; 1 syntax errors; 2 unresolved names (0.012%)
+!SESSION 2023-06-19 16:10:59.826 -----------------------------------------------
+eclipse.buildId=Version 1.9.0
+java.version=11.0.11
+java.vendor=AdoptOpenJDK
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=es_AR
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY org.eclipse.core.resources 2 10035 2023-06-19 16:11:07.161
+!MESSAGE The workspace exited with unsaved changes in the previous session; refreshing workspace to recover changes.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2023-06-19 16:11:11.576
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2023-06-19 16:11:11.684
+!MESSAGE Log4j initialized with config file E:\UNCuyo\Cursadas\Microcontroladores y Electronica de potencia\robotArm\robot_arm\programa\.metadata\.log4j.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2023-06-19 16:11:35.941
+!MESSAGE Started RMI Server, listening on port 41337

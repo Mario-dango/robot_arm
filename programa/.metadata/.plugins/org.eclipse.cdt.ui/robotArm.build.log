@@ -1,0 +1,20 @@
+12:45:25 **** Build of configuration Debug for project robotArm ****
+make -j4 all 
+arm-none-eabi-gcc -mcpu=cortex-m3 -g3 -DDEBUG -c -x assembler-with-cpp -MMD -MP -MF"Startup/startup_stm32f103c8tx.d" -MT"Startup/startup_stm32f103c8tx.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Startup/startup_stm32f103c8tx.o" "../Startup/startup_stm32f103c8tx.s"
+arm-none-eabi-gcc "../Src/main.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DSTM32 -DSTM32F1 -DSTM32F103C8Tx -c -I../Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/main.d" -MT"Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Src/main.o"
+arm-none-eabi-gcc "../Src/syscalls.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DSTM32 -DSTM32F1 -DSTM32F103C8Tx -c -I../Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/syscalls.d" -MT"Src/syscalls.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Src/syscalls.o"
+arm-none-eabi-gcc "../Src/sysmem.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DSTM32 -DSTM32F1 -DSTM32F103C8Tx -c -I../Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/sysmem.d" -MT"Src/sysmem.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Src/sysmem.o"
+arm-none-eabi-gcc -o "robotArm.elf" @"objects.list"   -mcpu=cortex-m3 -T"E:\UNCuyo\Cursadas\Microcontroladores y Electronica de potencia\robotArm\robot_arm\programa\robotArm\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="robotArm.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: robotArm.elf
+ 
+arm-none-eabi-size   robotArm.elf 
+arm-none-eabi-objdump -h -S  robotArm.elf  > "robotArm.list"
+   text	   data	    bss	    dec	    hex	filename
+    556	      8	   1568	   2132	    854	robotArm.elf
+Finished building: default.size.stdout
+ 
+Finished building: robotArm.list
+ 
+
+12:45:30 Build Finished. 0 errors, 0 warnings. (took 5s.940ms)
+

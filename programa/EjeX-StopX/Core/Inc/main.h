@@ -59,20 +59,20 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define LedPcb_Pin GPIO_PIN_13
-#define LedPcb_GPIO_Port GPIOC
 #define StepM_X_Pin GPIO_PIN_0
 #define StepM_X_GPIO_Port GPIOA
 #define DirM_X_Pin GPIO_PIN_3
 #define DirM_X_GPIO_Port GPIOA
 #define StopM_X_Pin GPIO_PIN_14
 #define StopM_X_GPIO_Port GPIOB
+#define StopM_X_EXTI_IRQn EXTI15_10_IRQn
 #define ResetMotors_Pin GPIO_PIN_15
 #define ResetMotors_GPIO_Port GPIOB
 #define SleepMotors_Pin GPIO_PIN_5
 #define SleepMotors_GPIO_Port GPIOB
 #define EnableMotors_Pin GPIO_PIN_8
 #define EnableMotors_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

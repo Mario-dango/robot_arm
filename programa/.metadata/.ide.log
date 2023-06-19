@@ -2563,3 +2563,4 @@
 2023-06-19 16:11:33,880 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] 	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
 2023-06-19 16:11:33,881 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] 	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)
 2023-06-19 16:11:35,676 [ERROR] AnalyticsContext:980 - The ST intranet updater server is unknown: mcucrossselector.codex.cro.st.com
+2023-06-19 16:17:52,001 [ERROR] LogOutputStream:74 - [STDERR_REDIRECT] 

@@ -31,6 +31,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -39,13 +40,9 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
- TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
-
- uint32_t velMotor1 = 0;
- uint16_t thetaMotor1 = 0;
- // uint32_t adcVal;					// Arreglo para guardar los valores leidos del conversor ADC
 
 /* USER CODE END PV */
 
@@ -56,10 +53,6 @@ static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
-
-// void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);		// Función para el manejo de interrupciones del Timer 2
-// void EXTI9_5_IRQHandler(void);		// Función para manejo de la interrupciones externas por fin de carrera
-// void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
@@ -96,10 +89,6 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-
-  HAL_TIM_Base_Start_IT(&htim3);
-  HAL_TIM_PWM_Start(&htim2, StepM1_Pin);
-  HAL_TIM_Base_Start_IT(&htim2);			// Iniciar el temporizador con interrupción
 
   /* USER CODE END 2 */
 
@@ -217,6 +206,8 @@ static void MX_TIM2_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -225,20 +216,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LedPcb_GPIO_Port, LedPcb_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(DirM_X_GPIO_Port, DirM_X_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, ResetMotors_Pin|SleepMotors_Pin|EnableMotors_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : LedPcb_Pin */
-  GPIO_InitStruct.Pin = LedPcb_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LedPcb_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : DirM_X_Pin */
   GPIO_InitStruct.Pin = DirM_X_Pin;
@@ -260,78 +241,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
-
-
-// Función de retrollamada (callback) para la interrupción de desbordamiento del temporizador TIM2
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  if (htim->Instance == TIM2)  // Verificar si la interrupción es del temporizador TIM2
-  {
-    static uint32_t counter = 0;
-
-    // Mover el motor durante 1 segundo
-    if (counter < 1000)
-    {
-      //    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);  // Iniciar la generación de la señal PWM en el canal 1
-      // HAL_GPIO_WritePin(GPIO_Port, DIR_Pin, GPIO_PIN_SET);  // Establecer la dirección del motor (DIR) hacia adelante
-      // HAL_GPIO_WritePin(GPIO_Port, STEP_Pin, GPIO_PIN_SET);  // Generar un pulso en el pin de paso (STEP)
-      // HAL_GPIO_WritePin(GPIO_Port, STEP_Pin, GPIO_PIN_RESET);  // Restablecer el pulso en el pin de paso (STEP)
-    }
-    // Detener el motor durante 1 segundo
-    else if (counter < 2000)
-    {
-      //        HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);  // Detener la generación de la señal PWM en el canal 1
-      // HAL_GPIO_WritePin(GPIO_Port, DIR_Pin, GPIO_PIN_RESET);  // Establecer la dirección del motor (DIR) hacia atrás
-      // HAL_GPIO_WritePin(GPIO_Port, STEP_Pin, GPIO_PIN_SET);  // Generar un pulso en el pin de paso (STEP)
-      // HAL_GPIO_WritePin(GPIO_Port, STEP_Pin, GPIO_PIN_RESET);  // Restablecer el pulso en el pin de paso (STEP)
-    }
-    else
-    {
-      counter = 0;  // Reiniciar el contador para repetir el ciclo
-    }
-
-    counter++;
-  }
-
-  if (htim->Instance == TIM3)  // Verificar si la interrupción es del temporizador TIM3
-  {
-	  HAL_GPIO_TogglePin(PinLedPcb_GPIO_Port, PinLedPcb_Pin);		// Cambia el estado del led PC13 cada vez que salta la interrupción
-  }
-}
-
-// Función de retrollamada (callback) para la interrupción externa EXTI3
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	HAL_GPIO_TogglePin(PinLedPcb_GPIO_Port, PinLedPcb_Pin);
-	/*
-	 *
-	if (GPIO_Pin == GPIO_PIN_9)
-  // if (HAL_GPIO_ReadPin(StopM1_GPIO_Port, StopM1_Pin) == GPIO_PIN_RESET)
-  {
-    // Se detectó un flanco descendente en PA3, detener el motor
-    HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);  // Detener la generación de la señal PWM en el canal 1
-    HAL_GPIO_WritePin(EnableMotor_GPIO_Port, EnableMotor_Pin, GPIO_PIN_SET);
-  }
-  else
-  {
-    // Se detectó un flanco ascendente en PA3, reanudar el motor
-    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);  // Iniciar la generación de la señal PWM en el canal 1
-    HAL_GPIO_WritePin(EnableMotor_GPIO_Port, EnableMotor_Pin, GPIO_PIN_RESET);
-  }
-
-	*/
-  HAL_GPIO_EXTI_IRQHandler(StopM1_Pin);  // Limpiar la bandera de interrupción EXTI3
-}
-
-/*
-// Función para el callback del conversor ADC
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
-{
-	TIM2->CCR2 = adcVal;
-}
 
 /* USER CODE END 4 */
 

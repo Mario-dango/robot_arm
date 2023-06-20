@@ -1,0 +1,10 @@
+Actualmente se han probado las siguientes funcionalidades:
+	$ Realizar interrupciones externas implementando los sensores opticos, tomarlas y actuar en consecuencia cambiando ele stado de un led
+	$ Realizar interrupciones internas usando los Timers 3 para el cambio de un led con su frecuencia de 1Hz
+	$ realizar la puesta enm marcha de un motor pap bipolar cambiando la dirección y manejado el Step con el timer 2 conf recuencia de 100Hz
+	
+Cómo todo ha habído problemas, no fue lograda la variabilidad de la velocidad mediante el reajuste del registro CCR1 que va relacionado con la saldia del canal PWM 1.
+Se logró variar la velocidad mediante el Debuger cambiando el valor de registro del ARR pero al incrementar el CCR1 por arriba del ARR el mismo se detenía abruptamente de manera similar sucedia al pasar de CRR1= 0 a CCR1= 1 para cualquier valor de ARR.
+Se probará cambiar el driver A4988 por otros que se esperan hasta la fecha 20/06/2023.
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&			FIN DE INFORME		FECHA:20/06/2023 

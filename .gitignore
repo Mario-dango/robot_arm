@@ -1,3 +1,3 @@
 # Se agregó el git ignore para poder desacoplar la carpeta de metadata del entonro de STM32cubeIDE
 
-.metadata
+programa/.metadata/

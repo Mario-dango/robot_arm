@@ -1947,11 +1947,7 @@ Wire Wire Line
 Wire Wire Line
 	6750 3700 7250 3700
 Wire Wire Line
-	6950 3300 7100 3450
-Wire Wire Line
 	7200 3350 7200 3750
-Wire Wire Line
-	7050 3200 7200 3350
 Wire Wire Line
 	7950 5850 7950 6000
 Wire Wire Line
@@ -2026,111 +2022,15 @@ Text GLabel 8700 3350 2    50   Input ~ 0
 StopY
 Text GLabel 8700 3500 2    50   Input ~ 0
 StopX
-Wire Wire Line
-	8050 3200 8300 3200
-Wire Wire Line
-	8400 3100 8400 3000
-Wire Wire Line
-	8300 3200 8400 3100
-Wire Wire Line
-	8000 3150 8050 3200
-Wire Wire Line
-	8000 3050 8000 3150
-Wire Wire Line
-	8150 3150 8150 3250
-Wire Wire Line
-	8100 3100 8150 3150
-Wire Wire Line
-	8100 3050 8100 3100
-Wire Wire Line
-	8000 3450 8100 3550
-Wire Wire Line
-	8100 3550 8100 3750
-Wire Wire Line
-	8000 3250 8000 3450
-Wire Wire Line
-	7900 3150 8000 3250
-Wire Wire Line
-	7900 3450 8000 3550
-Wire Wire Line
-	8000 3550 8000 3750
-Wire Wire Line
-	7900 3250 7900 3450
-Wire Wire Line
-	7800 3150 7900 3250
-Wire Wire Line
-	7800 3450 7900 3550
-Wire Wire Line
-	7900 3550 7900 3750
-Wire Wire Line
-	7800 3250 7800 3450
-Wire Wire Line
-	7700 3150 7800 3250
-Wire Wire Line
-	7700 3450 7800 3550
-Wire Wire Line
-	7800 3550 7800 3750
-Wire Wire Line
-	7700 3250 7700 3450
-Wire Wire Line
-	7600 3150 7700 3250
-Wire Wire Line
-	7600 3450 7700 3550
-Wire Wire Line
-	7700 3550 7700 3750
-Wire Wire Line
-	7600 3250 7600 3450
-Wire Wire Line
-	7500 3150 7600 3250
-Wire Wire Line
-	7500 3450 7600 3550
-Wire Wire Line
-	7600 3550 7600 3750
-Wire Wire Line
-	7500 3250 7500 3450
-Wire Wire Line
-	7400 3150 7500 3250
-Wire Wire Line
-	7400 3450 7500 3550
-Wire Wire Line
-	7500 3550 7500 3750
-Wire Wire Line
-	7400 3250 7400 3450
-Wire Wire Line
-	7300 3150 7400 3250
-Wire Wire Line
-	7300 3450 7400 3550
-Wire Wire Line
-	7400 3550 7400 3750
-Wire Wire Line
-	7300 3250 7300 3450
-Wire Wire Line
-	7200 3150 7300 3250
-Wire Wire Line
-	7900 3050 7900 3150
-Wire Wire Line
-	7800 3050 7800 3150
-Wire Wire Line
-	7700 3050 7700 3150
-Wire Wire Line
-	7600 3050 7600 3150
-Wire Wire Line
-	7500 3050 7500 3150
-Wire Wire Line
-	7400 3050 7400 3150
-Wire Wire Line
-	7300 3050 7300 3150
-Wire Wire Line
-	7200 3050 7200 3150
 $Comp
 L power:GNDREF #PWR0120
 U 1 1 64C4B49B
-P 8150 3250
-F 0 "#PWR0120" H 8150 3000 50  0001 C CNN
-F 1 "GNDREF" H 8155 3077 50  0000 C CNN
-F 2 "" H 8150 3250 50  0001 C CNN
-F 3 "" H 8150 3250 50  0001 C CNN
-	1    8150 3250
+P 8250 3300
+F 0 "#PWR0120" H 8250 3050 50  0001 C CNN
+F 1 "GNDREF" H 8255 3127 50  0000 C CNN
+F 2 "" H 8250 3300 50  0001 C CNN
+F 3 "" H 8250 3300 50  0001 C CNN
+	1    8250 3300
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -2145,22 +2045,9 @@ F 3 "" V 7625 5500 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	7100 3750 7100 3450
-Wire Wire Line
 	8800 4350 9200 4350
 Wire Wire Line
 	8800 4450 9050 4450
-$Comp
-L power:+3.3V #PWR0119
-U 1 1 64BEA808
-P 8400 3000
-F 0 "#PWR0119" H 8400 2850 50  0001 C CNN
-F 1 "+3.3V" H 8415 3173 50  0000 C CNN
-F 2 "" H 8400 3000 50  0001 C CNN
-F 3 "" H 8400 3000 50  0001 C CNN
-	1    8400 3000
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	8900 5900 8900 5950
 Connection ~ 8900 5900
@@ -2176,17 +2063,6 @@ F 2 "" H 8500 5650 50  0001 C CNN
 F 3 "" H 8500 5650 50  0001 C CNN
 	1    8500 5650
 	1    0    0    -1  
-$EndComp
-$Comp
-L Connector_Generic:Conn_01x10 J17
-U 1 1 64B8CE67
-P 7600 2850
-F 0 "J17" V 7817 2796 50  0000 C CNN
-F 1 "Conector Auxiliar 1" V 7726 2796 50  0000 C CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_1x10_P2.54mm_Vertical" H 7600 2850 50  0001 C CNN
-F 3 "~" H 7600 2850 50  0001 C CNN
-	1    7600 2850
-	0    -1   -1   0   
 $EndComp
 $Comp
 L Connector_Generic:Conn_01x08 J11
@@ -2262,10 +2138,6 @@ F 3 "~" H 8900 5850 50  0001 C CNN
 	1    8900 5650
 	0    1    1    0   
 $EndComp
-Wire Wire Line
-	6150 3200 7050 3200
-Wire Wire Line
-	6150 3300 6950 3300
 Text GLabel 6800 3550 0    50   Input ~ 0
 Gripper
 Text GLabel 6750 6300 0    50   Input ~ 0
@@ -2506,17 +2378,6 @@ F 1 "VCC" H 4815 6373 50  0000 C CNN
 F 2 "" H 4800 6200 50  0001 C CNN
 F 3 "" H 4800 6200 50  0001 C CNN
 	1    4800 6200
-	-1   0    0    -1  
-$EndComp
-$Comp
-L Connector_Generic:Conn_01x04 J8
-U 1 1 648FFADD
-P 5950 3200
-F 0 "J8" H 5900 3500 50  0000 L CNN
-F 1 "Conector I2C" H 5700 3400 50  0000 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 5950 3200 50  0001 C CNN
-F 3 "~" H 5950 3200 50  0001 C CNN
-	1    5950 3200
 	-1   0    0    -1  
 $EndComp
 Wire Wire Line
@@ -2904,4 +2765,80 @@ F 3 "http://www.vishay.com/docs/88503/1n4001.pdf" H 2750 3750 50  0001 C CNN
 	1    2750 3750
 	1    0    0    -1  
 $EndComp
+$Comp
+L Connector_Generic:Conn_01x10 J17
+U 1 1 64B8CE67
+P 7700 2850
+F 0 "J17" V 7917 2796 50  0000 C CNN
+F 1 "Conector Auxiliar 1" V 7826 2796 50  0000 C CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_1x10_P2.54mm_Vertical" H 7700 2850 50  0001 C CNN
+F 3 "~" H 7700 2850 50  0001 C CNN
+	1    7700 2850
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	7400 3050 7400 3750
+Wire Wire Line
+	7500 3050 7500 3750
+Wire Wire Line
+	7600 3050 7600 3750
+Wire Wire Line
+	7700 3050 7700 3750
+Wire Wire Line
+	7800 3050 7800 3750
+Wire Wire Line
+	7900 3050 7900 3750
+Wire Wire Line
+	8000 3050 8000 3750
+Wire Wire Line
+	8100 3050 8100 3750
+$Comp
+L Connector_Generic:Conn_01x04 J8
+U 1 1 648FFADD
+P 5950 3200
+F 0 "J8" H 5900 3500 50  0000 L CNN
+F 1 "Conector I2C" H 5700 3400 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 5950 3200 50  0001 C CNN
+F 3 "~" H 5950 3200 50  0001 C CNN
+	1    5950 3200
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	7250 3150 7150 3150
+Wire Wire Line
+	7100 3100 7100 3000
+Wire Wire Line
+	7150 3150 7100 3100
+Wire Wire Line
+	7300 3100 7250 3150
+$Comp
+L power:+3.3V #PWR0119
+U 1 1 66580344
+P 7100 3000
+F 0 "#PWR0119" H 7100 2850 50  0001 C CNN
+F 1 "+3.3V" H 7115 3173 50  0000 C CNN
+F 2 "" H 7100 3000 50  0001 C CNN
+F 3 "" H 7100 3000 50  0001 C CNN
+	1    7100 3000
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	8250 3300 8250 3150
+Wire Wire Line
+	8250 3150 8200 3100
+Wire Wire Line
+	8200 3100 8200 3050
+Wire Wire Line
+	7300 3100 7300 3050
+Wire Wire Line
+	6150 3300 6950 3300
+Wire Wire Line
+	6950 3300 7100 3450
+Wire Wire Line
+	7100 3450 7100 3750
+Wire Wire Line
+	7050 3200 6150 3200
+Wire Wire Line
+	7050 3200 7200 3350
+NoConn ~ 10050 2450
 $EndSCHEMATC

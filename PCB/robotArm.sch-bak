@@ -411,17 +411,6 @@ Wire Wire Line
 Wire Wire Line
 	2350 1500 2300 1500
 $Comp
-L Diode:1N4007 D1
-U 1 1 64B44809
-P 2500 1500
-F 0 "D1" H 2500 1283 50  0000 C CNN
-F 1 "1N4007" H 2500 1374 50  0000 C CNN
-F 2 "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal" H 2500 1325 50  0001 C CNN
-F 3 "http://www.vishay.com/docs/88503/1n4001.pdf" H 2500 1500 50  0001 C CNN
-	1    2500 1500
-	1    0    0    -1  
-$EndComp
-$Comp
 L Device:R_US R2
 U 1 1 64B44813
 P 2450 1000
@@ -1909,9 +1898,9 @@ Wire Wire Line
 	7450 5500 7500 5450
 Wire Wire Line
 	6800 5500 7450 5500
-Text GLabel 6800 5500 0    50   Input ~ 0
-StepZ
 Text GLabel 6800 5800 0    50   Input ~ 0
+StepZ
+Text GLabel 6800 5500 0    50   Input ~ 0
 StepX
 NoConn ~ 7200 5350
 NoConn ~ 7100 5350
@@ -2140,9 +2129,9 @@ F 3 "~" H 8900 5850 50  0001 C CNN
 $EndComp
 Text GLabel 6800 3550 0    50   Input ~ 0
 Gripper
-Text GLabel 6750 6300 0    50   Input ~ 0
-DirX
 Text GLabel 6750 6000 0    50   Input ~ 0
+DirX
+Text GLabel 6750 6300 0    50   Input ~ 0
 DirZ
 Text GLabel 6750 6150 0    50   Input ~ 0
 DirY
@@ -2344,13 +2333,13 @@ Connection ~ 4950 6400
 $Comp
 L Connector:Screw_Terminal_01x02 J21
 U 1 1 64C807B4
-P 5400 6150
-F 0 "J21" H 5480 6142 50  0000 L CNN
-F 1 "Vcc" H 5480 6051 50  0000 L CNN
-F 2 "TerminalBlock:TerminalBlock_bornier-2_P5.08mm" H 5400 6150 50  0001 C CNN
-F 3 "~" H 5400 6150 50  0001 C CNN
-	1    5400 6150
-	0    -1   -1   0   
+P 5500 6150
+F 0 "J21" H 5580 6142 50  0000 L CNN
+F 1 "Vcc" H 5580 6051 50  0000 L CNN
+F 2 "TerminalBlock:TerminalBlock_bornier-2_P5.08mm" H 5500 6150 50  0001 C CNN
+F 3 "~" H 5500 6150 50  0001 C CNN
+	1    5500 6150
+	0    1    -1   0   
 $EndComp
 Wire Wire Line
 	4100 6500 4100 6450
@@ -2840,4 +2829,16 @@ Wire Wire Line
 	7050 3200 6150 3200
 Wire Wire Line
 	7050 3200 7200 3350
+NoConn ~ 10050 2450
+$Comp
+L Diode:1N4007 D1
+U 1 1 64B44809
+P 2500 1500
+F 0 "D1" H 2500 1283 50  0000 C CNN
+F 1 "1N4007" H 2500 1374 50  0000 C CNN
+F 2 "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal" H 2500 1325 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/88503/1n4001.pdf" H 2500 1500 50  0001 C CNN
+	1    2500 1500
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC

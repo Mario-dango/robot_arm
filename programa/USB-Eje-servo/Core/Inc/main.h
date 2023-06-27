@@ -71,6 +71,8 @@ void Error_Handler(void);
 #define DirM_Y_GPIO_Port GPIOA
 #define DirM_X_Pin GPIO_PIN_5
 #define DirM_X_GPIO_Port GPIOA
+#define azul_Pin GPIO_PIN_7
+#define azul_GPIO_Port GPIOA
 #define StopM_Z_Pin GPIO_PIN_12
 #define StopM_Z_GPIO_Port GPIOB
 #define StopM_Z_EXTI_IRQn EXTI15_10_IRQn

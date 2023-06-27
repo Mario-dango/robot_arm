@@ -26,6 +26,8 @@
 /* USER CODE BEGIN Includes */
 
 #include <math.h>
+#include <usbd_cdc_if.h>
+#include <string.h>
 
 /* USER CODE END Includes */
 
@@ -80,6 +82,9 @@ uint8_t microSteppingM_Z = 1;
 
 // uint32_t adcVal;					// Arreglo para guardar los valores leidos del conversor ADC
 uint32_t contador = 0;
+
+// Data to transmit CDC
+char * data = "Hello World!";
 
 /* USER CODE END PV */
 
@@ -172,6 +177,8 @@ int main(void)
 
   uint16_t velocidadTargetMotor_X = 0;
 
+  CDC_Transmit_FS((uint8_t *) data, strlen (data));
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -186,11 +193,15 @@ int main(void)
 	  flagStopM_Z = 1;
 	  thetaTargetMotor_Z = 0;
 
+	  data = "Realizando el Homming";
+	  CDC_Transmit_FS((uint8_t *) data, strlen (data));
 	  //HAL_Delay(1000);
 	  if (countHome == 0){
 		  countHome = HomingMotors(&homeMotor_X, &homeMotor_Y, &homeMotor_Z);
 		  HAL_Delay(700);
 		  HAL_GPIO_WritePin(azul_GPIO_Port, azul_Pin, RESET);
+		  data = "Homing finalizado!";
+		  CDC_Transmit_FS((uint8_t *) data, strlen (data));
 	  }
 
 	  // Movimiento consigna
@@ -284,6 +295,172 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+int HomingMotors(uint8_t* hmX, uint8_t* hmY, uint8_t* hmZ){
+
+	ActivatedAll();
+
+	velMotor_X = 100;
+	velMotor_Y = 100;
+	velMotor_Z = 100;
+
+	while (*hmX == 0){
+		*hmX = flagStopM_X;
+	}
+	while (*hmY == 0){
+		*hmY = flagStopM_Y;
+	}
+	while (*hmZ == 0){
+		*hmZ = flagStopM_Z;
+	}
+	velMotor_X = 0;
+	velMotor_Y = 0;
+	velMotor_Z = 0;
+	thetaMotor_X = 0;
+	thetaMotor_Y = 0;
+	thetaMotor_Z = 0;
+
+	moverX(2, 70);
+	return 1;
+}
+
+void moverX(float target, uint16_t velocidad){
+	while (thetaMotor_X != target){
+		// llegar a objetico
+		while (thetaMotor_X > target){
+			DirM_X = 1;
+			HAL_GPIO_WritePin(DirM_X_GPIO_Port, DirM_X_Pin, SET);
+			velMotor_X = velocidad;
+			// alcanzar el objetivo
+		}
+		while (thetaMotor_X < target){
+			DirM_X = 0;
+			HAL_GPIO_WritePin(DirM_X_GPIO_Port, DirM_X_Pin, RESET);
+			velMotor_X = velocidad;
+		}
+		//*flagStop = 1;
+		velMotor_X = 0;
+	}
+}
+/*
+void moverEje(char eje, float target, uint16_t velocidad) {
+    float* thetaMotor;
+    GPIO_TypeDef* dirPort;
+    uint16_t dirPin;
+
+    if (eje == 'x') {
+        thetaMotor = &thetaMotor_X;
+        dirPort = DirM_X_GPIO_Port;
+        dirPin = DirM_X_Pin;
+    } else if (eje == 'y') {
+        thetaMotor = &thetaMotor_Y;
+        dirPort = DirM_Y_GPIO_Port;
+        dirPin = DirM_Y_Pin;
+    } else if (eje == 'z') {
+        thetaMotor = &thetaMotor_Z;
+        dirPort = DirM_Z_GPIO_Port;
+        dirPin = DirM_Z_Pin;
+    } else {
+        // Manejo de error en caso de que se proporcione un carácter no válido
+        return;
+    }
+
+    while (*thetaMotor != target) {
+        // Llegar al objetivo en el eje especificado
+        if (*thetaMotor > target) {
+            HAL_GPIO_WritePin(dirPort, dirPin, SET);
+        } else if (*thetaMotor < target) {
+            HAL_GPIO_WritePin(dirPort, dirPin, RESET);
+        }
+
+        velMotor_X = velocidad;  // Se actualiza la velocidad según el eje actual
+
+        // Alcanzar el objetivo en el eje especificado
+
+        velMotor_X = 0;  // Se detiene el motor en el eje actual
+    }
+}
+*/
+void ActivatedAll (void){
+	  HAL_GPIO_WritePin(ResetMotors_GPIO_Port, ResetMotors_Pin, RESET);
+	  HAL_GPIO_WritePin(SleepMotors_GPIO_Port, SleepMotors_Pin, RESET);
+	  HAL_GPIO_WritePin(EnableMotors_GPIO_Port, EnableMotors_Pin, RESET);
+}
+
+float deg2rad(float degrees) {
+  return degrees * (M_PI / 180.0);
+}
+
+// Función de retrollamada (callback) para la interrupción externa EXTI3
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if (GPIO_Pin == StopM_X_Pin){
+		if (flagStopM_X == 1){
+			flagStopM_X = 0;
+		} else {
+			velMotor_X = 0;
+			flagStopM_X = 1;
+		}
+		HAL_GPIO_TogglePin(azul_GPIO_Port, azul_Pin);
+	}
+	/*
+	 *
+	if (GPIO_Pin == GPIO_PIN_9)
+  // if (HAL_GPIO_ReadPin(StopM1_GPIO_Port, StopM1_Pin) == GPIO_PIN_RESET)
+  {
+    // Se detectó un flanco descendente en PA3, detener el motor
+    HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);  // Detener la generación de la señal PWM en el canal 1
+    HAL_GPIO_WritePin(EnableMotor_GPIO_Port, EnableMotor_Pin, GPIO_PIN_SET);
+  }
+  else
+  {
+    // Se detectó un flanco ascendente en PA3, reanudar el motor
+    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);  // Iniciar la generación de la señal PWM en el canal 1
+    HAL_GPIO_WritePin(EnableMotor_GPIO_Port, EnableMotor_Pin, GPIO_PIN_RESET);
+  }
+
+	*/
+  HAL_GPIO_EXTI_IRQHandler(StopM_X_Pin);  // Limpiar la bandera de interrupción EXTI3
+}
+
+/*
+// Función para el callback del conversor ADC
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
+{
+	TIM2->CCR2 = adcVal;
+}
+*/
+
+
+// Función de retrollamada (callback) para la interrupción de desbordamiento del temporizador TIM2
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim->Instance == TIM2)  // Verificar si la interrupción es del temporizador TIM2
+  {
+	  contador++;
+	  if ((velMotor_X > 0) && (contador % velMotor_X == 0))
+	  {
+		  if (flagStopM_X == 0){
+			  HAL_GPIO_WritePin(StepM_X_GPIO_Port, StepM_X_Pin, SET);
+			  if (DirM_X == 0){
+				  thetaMotor_X = (thetaMotor_X + 1) / microSteppingM_X;
+			  } else {
+				  thetaMotor_X = (thetaMotor_X - 1) / microSteppingM_X;
+			  }
+		  }
+		  contador = 0;
+		  HAL_GPIO_WritePin(StepM_X_GPIO_Port, StepM_X_Pin, RESET);
+	  }
+	  else
+	  {
+		  //
+	  }
+  }
+  if (htim->Instance == TIM3)  // Verificar si la interrupción es del temporizador TIM3
+  {
+	  HAL_GPIO_TogglePin(LedPcb_GPIO_Port, LedPcb_Pin);		// Cambia el estado del led PC13 cada vez que salta la interrupción
+  }
+}
 
 /* USER CODE END 4 */
 

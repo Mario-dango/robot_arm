@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "i2c.h"
 #include "tim.h"
 #include "usb_device.h"
 #include "gpio.h"
@@ -25,8 +26,11 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include "lcd_i2c.h"
 #include <math.h>
 #include <usbd_cdc_if.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 /* USER CODE END Includes */
@@ -39,6 +43,16 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+//	Valores para el gripper sg90
+#define PULSE_MIN 550
+#define PULSE_MAX 2450
+
+// Definición de las frecuencias de temporización (en Hertz)
+#define TIMER_FREQUENCY 1000 // Por ejemplo, 1000 Hz (1 ms de intervalo)
+
+// Número de motores que estás utilizando
+#define NUM_MOTORS 3
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -50,6 +64,28 @@
 
 /* USER CODE BEGIN PV */
 
+// Motor's Struct
+typedef struct {
+    GPIO_TypeDef *stepPort;     // Puerto GPIO para el pin de paso (step)
+    uint16_t stepPin;           // Número del pin de paso (step)
+    GPIO_TypeDef *dirPort;      // Puerto GPIO para el pin de dirección (dir)
+    uint16_t dirPin;            // Número del pin de dirección (dir)
+    int direction;              // Dirección de movimiento (0 para positivo, 1 para negativo)
+    int velocity;               // Velocidad del motor
+    int microStepping;          // Configuración de microstepping
+    int currentPosition;        // Posición actual del motor
+    int newPosition;        	// Nueva posición del motor
+    int stepCounter;            // Contador de pasos para controlar el intervalo
+    int stepInterval;           // Intervalo entre pasos para controlar la velocidad
+    int stopFlag;               // Bandera para detener el movimiento (0 para habilitar, 1 para detener)
+} StepperMotor;
+
+//	Cantidad de grados de libertad sin deflector final
+StepperMotor motors[NUM_MOTORS];
+
+//	Estado del deflector final
+uint8_t estadoGarra = 0;
+
 //	Vel Motors
 uint16_t velMotor_X = 0;
 uint16_t velMotor_Y = 0;
@@ -60,11 +96,7 @@ uint8_t DirM_X = 0;
 uint8_t DirM_Y = 0;
 uint8_t DirM_Z = 0;
 
-// Step Motors
-float thetaMotor_X = 1;
-float thetaMotor_Y = 1;
-float thetaMotor_Z = 1;
-
+// PROBAR DE CAMBIAR LOS PUNTEROS POR VALORES
 //	FLAGS STOP GLOBALES
 uint8_t flagStopM_X = 0;
 uint8_t flagStopM_Y = 0;
@@ -80,11 +112,42 @@ uint8_t microSteppingM_X = 1;
 uint8_t microSteppingM_Y = 1;
 uint8_t microSteppingM_Z = 1;
 
-// uint32_t adcVal;					// Arreglo para guardar los valores leidos del conversor ADC
-uint32_t contador = 0;
+///// Flags de Homing
+ uint8_t homeMotor_X = 0;
+ uint8_t homeMotor_Y = 0;
+ uint8_t homeMotor_Z = 0;
+ int countHome = 0;
+
+//	Cotador de segundos para el homming
+uint8_t contSeconds = 0;
 
 // Data to transmit CDC
 char * data = "Hello World!";
+uint8_t flagUsb = 0;
+char buffer_rx[20];
+char buffer_tx[40];
+char buffer_data[5][6];
+/*Buffer data
+ * 0: Acción primaria
+ * 1: Acción Secundaria
+ * 2: Valores de velocidades
+ * 3: Valores de posición
+ * 4: Valor auxiliar
+ */
+
+//	LCD consts
+uint8_t contador = 0;
+char buf_lcd[18];
+
+const char fig_1[8] = {0x0A, 0x0A, 0x0A, 0x00, 0x11, 0x11, 0x0E, 0x00};
+const char fig_2[8] = {0x04, 0x11, 0x0E, 0x04, 0x04, 0x0A, 0x11, 0x00};
+const char fig_3[8] = {0x00, 0x0A, 0x1F, 0x1F, 0x1F, 0x0E, 0x04, 0x00};
+const char fig_4[8] = {0x0E, 0x1F, 0x1F, 0x0E, 0x0A, 0x11, 0x11, 0x00};
+const char fig_5[8] = {0x04, 0x0E, 0x1F, 0x04, 0x04, 0x04, 0x04, 0x00};
+const char fig_6[8] = {0x0E, 0x0A, 0x11, 0x11, 0x11, 0x1F, 0x1F, 0x00};
+const char fig_7[8] = {0x04, 0x0E, 0x04, 0x04, 0x15, 0x15, 0x0E, 0x00};
+const char fig_8[8] = {0x1F, 0x11, 0x0A, 0x04, 0x0A, 0x11, 0x1F, 0x00};
+
 
 /* USER CODE END PV */
 
@@ -93,16 +156,20 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
 int HomingMotors(uint8_t* hmX, uint8_t* hmY, uint8_t* hmZ);
-void ActivatedAll (void);
+void ActivatedAll (int habilitar);
 float deg2rad(float degrees);
 
-//void moverMotor_eje(char eje, float *thetaTarget, uint16_t velocidadTarget);
-void moverX(float target, uint16_t velocidad);
+//extern CircularBuffer<uint8_t> usbBuffer;
+extern USBD_HandleTypeDef hUsbDeviceFS;
+void CDC_FS_Substring(uint8_t inicioCadena, uint8_t finCadena, char* str, char* dst);
 
-// extras
-// void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);		// Función para el manejo de interrupciones del Timer 2
-// void EXTI9_5_IRQHandler(void);		// Función para manejo de la interrupciones externas por fin de carrera
-// void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc);
+// Función para configurar el intervalo de paso en función de la velocidad del motor
+void moveMotors(StepperMotor *motor, int * newPosition, int * velocity);
+int targetComplete(StepperMotor *motor);
+
+//	Función para mover el servo
+void Servo_Write_angle(uint16_t theta);
+
 
 /* USER CODE END PFP */
 
@@ -140,107 +207,270 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM2_Init();
-  MX_TIM3_Init();
-  MX_TIM4_Init();
   MX_USB_DEVICE_Init();
+  MX_TIM4_Init();
+  MX_TIM3_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
 
+  // Apartado para inicializar el LCD
+  Lcd_Init();
+
+
   ///// Configurar los Buses Reset, Sleep y Enable
-  HAL_GPIO_WritePin(ResetMotors_GPIO_Port, ResetMotors_Pin, SET);
-  HAL_GPIO_WritePin(SleepMotors_GPIO_Port, SleepMotors_Pin, SET);
+  HAL_GPIO_WritePin(ResetMotors_GPIO_Port, ResetMotors_Pin, RESET);
+  HAL_GPIO_WritePin(SleepMotors_GPIO_Port, SleepMotors_Pin, RESET);
   HAL_GPIO_WritePin(EnableMotors_GPIO_Port, EnableMotors_Pin, SET);
 
-  HAL_TIM_Base_Start_IT(&htim3);
+  // Inicialización de cada motor
+  motors[0] = (StepperMotor){StepM_X_GPIO_Port, StepM_X_Pin, DirM_X_GPIO_Port, DirM_X_Pin, DirM_X, velMotor_X, microSteppingM_X, 0, 0, 0, 0, flagStopM_X};
+  motors[1] = (StepperMotor){StepM_Y_GPIO_Port, StepM_Y_Pin, DirM_Y_GPIO_Port, DirM_Y_Pin, DirM_Y, velMotor_Y, microSteppingM_Y, 0, 0, 0, 0, flagStopM_Y};
+  motors[2] = (StepperMotor){StepM_Z_GPIO_Port, StepM_Z_Pin, DirM_Z_GPIO_Port, DirM_Z_Pin, DirM_Z, velMotor_Z, microSteppingM_Z, 0, 0, 0, 0, flagStopM_Z};
+
   HAL_TIM_Base_Start_IT(&htim2);			// Iniciar el temporizador con interrupción
-
-/*
-  TIM2->ARR = 8000;
-  TIM2->CCR1 = 7500;
-
-  TIM4->ARR = 9999;
-  TIM4->CCR4 = 5000;
-*/
-
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
   HAL_TIM_Base_Start_IT(&htim4);			// Iniciar el temporizador con interrupción
+  HAL_TIM_Base_Start_IT(&htim3);
 
-  ///// Flags de Homing
-  uint8_t homeMotor_X = 0;
-  uint8_t homeMotor_Y = 0;
-  uint8_t homeMotor_Z = 0;
-  int countHome = 0;
 
-  ///// Thetas objetivos
-  float thetaTargetMotor_X = 0;
-  float thetaTargetMotor_Y = 0;
-  float thetaTargetMotor_Z = 0;
-
-  uint16_t velocidadTargetMotor_X = 0;
-
+  // Envio datos al puerto USB
   CDC_Transmit_FS((uint8_t *) data, strlen (data));
 
+  Lcd_Clear();
+  Lcd_Set_Cursor(1,1);
+  Lcd_Send_String("La Gaaarra!");
+  Lcd_Set_Cursor(2,1);
+  Lcd_Send_String("By: Mario uwu");
+  Lcd_Set_Cursor(2,14);
+  Lcd_Blink();
+  HAL_Delay(2000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-	  // Caso de uso sin Motor Y
-	  flagStopM_Y = 1;
-	  thetaTargetMotor_Y = 0;
-	  // Caso de uso sin Motor Z
-	  flagStopM_Z = 1;
-	  thetaTargetMotor_Z = 0;
-
-	  data = "Realizando el Homming";
-	  CDC_Transmit_FS((uint8_t *) data, strlen (data));
-	  //HAL_Delay(1000);
-	  if (countHome == 0){
-		  countHome = HomingMotors(&homeMotor_X, &homeMotor_Y, &homeMotor_Z);
-		  HAL_Delay(700);
-		  HAL_GPIO_WritePin(azul_GPIO_Port, azul_Pin, RESET);
-		  data = "Homing finalizado!";
-		  CDC_Transmit_FS((uint8_t *) data, strlen (data));
+	  if(flagUsb == 1){
+		  HAL_GPIO_TogglePin(LedPcb_GPIO_Port, LedPcb_Pin);
+		  CDC_FS_Substring(1, 1, buffer_rx, buffer_data[0]);
+//		  buffer_data[0] -> opcion
+//		  if (*buffer_data[0] == 'H'){
+		  if (buffer_data[0][0] == 'H'){
+			  // Recordar poner ne homming el sevomotor también cerrado
+			  Servo_Write_angle(0);
+			  estadoGarra = 0;
+			  int homeStatus = HomingMotors(&homeMotor_X, &homeMotor_Y, &homeMotor_Z);
+//			  HAL_Delay(500);
+			  if (homeStatus == 0){
+				  sprintf(buffer_tx, "Home Status: %u\nHome exitoso!\r\n", homeStatus);
+				  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+				  Lcd_Clear();
+				  Lcd_Set_Cursor(1,1);
+	 			  Lcd_Send_String("Home Status: OK");
+	 			  Lcd_Set_Cursor(2,1);
+	 			  Lcd_Send_String("X000|Y000|Z000|C");
+				  HAL_Delay(150);
+			  } else if (homeStatus == -1){
+				  sprintf(buffer_tx, "Home Status: %u\nHome exitoso!\r\n", homeStatus);
+				  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+				  Lcd_Clear();
+				  Lcd_Set_Cursor(1,1);
+	 			  Lcd_Send_String("Home Error: ejeX");
+	 			  Lcd_Set_Cursor(2,1);
+	 			  Lcd_Send_String("X???|Y000|Z000|C");
+				  HAL_Delay(150);
+			  } else if (homeStatus == -1){
+				  sprintf(buffer_tx, "Home Status: %u\nFalla Home X!\r\n", homeStatus);
+				  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+				  Lcd_Clear();
+				  Lcd_Set_Cursor(1,1);
+	 			  Lcd_Send_String("Home Error: ejeX");
+	 			  Lcd_Set_Cursor(2,1);
+	 			  Lcd_Send_String("X???|Y000|Z000|C");
+				  HAL_Delay(150);
+			  } else if (homeStatus == -2){
+				  sprintf(buffer_tx, "Home Status: %u\nFalla Home Y!\r\n", homeStatus);
+				  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+				  Lcd_Clear();
+				  Lcd_Set_Cursor(1,1);
+	 			  Lcd_Send_String("Home Error: ejeX");
+	 			  Lcd_Set_Cursor(2,1);
+	 			  Lcd_Send_String("X000|Y???|Z000|C");
+				  HAL_Delay(150);
+			  } else if (homeStatus == -3){
+				  sprintf(buffer_tx, "Home Status: %u\nFalla Home Z!\r\n", homeStatus);
+				  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+				  Lcd_Clear();
+				  Lcd_Set_Cursor(1,1);
+	 			  Lcd_Send_String("Home Error: ejeX");
+	 			  Lcd_Set_Cursor(2,1);
+	 			  Lcd_Send_String("X000|Y000|Z???|C");
+				  HAL_Delay(150);
+			  } else if (homeStatus == 1){
+				  sprintf(buffer_tx, "Home Status: %u\nFalla en funcHome!\r\n", homeStatus);
+				  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+				  Lcd_Clear();
+				  Lcd_Set_Cursor(1,1);
+	 			  Lcd_Send_String("ERROR Home: all!");
+	 			  Lcd_Set_Cursor(2,1);
+	 			  Lcd_Send_String("X???|Y???|Z???|?");
+				  HAL_Delay(150);
+			  }
+			  HAL_Delay(1500);
+		  }
+		  //	CASO DE SETEO PARA VELOCIDADES GLOBALES
+		  else if (buffer_data[0][0] == 'V'){
+			  CDC_FS_Substring(2, 4, buffer_rx, buffer_data[2]);
+			  for (int i = 0; i < NUM_MOTORS; ++i) {
+				  motors[i].velocity = (uint8_t)atoi(buffer_data[2]);
+			  }
+			  Lcd_Set_Cursor(1,1);
+//			  char v[4];
+//			  sprintf(v, "%u", (uint8_t)atoi(buffer_data[2]));
+// 			  Lcd_Send_String("Velocidades: %u", (uint8_t)atoi(buffer_data[2]));
+			  sprintf(buffer_tx, "Velocidad globales seteadas.\r\n");
+			  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+			  HAL_Delay(150);
+		  }
+		  //	CASO DE SETEO PARA VELOCIDADES POR EJES
+		  else if (buffer_data[0][0] == 'v'){
+			  for (int i = 0; i < NUM_MOTORS; ++i) {
+				  motors[i].velocity = (uint8_t)atoi(buffer_data[2]);
+			  }
+			  CDC_FS_Substring(3, 5, buffer_rx, buffer_data[2]);
+			  if (strcmp(buffer_data[1],"X")){
+				  motors[0].velocity = (uint8_t)atoi(buffer_data[2]);
+			  } else if (strcmp(buffer_data[1],"Y")){
+				  motors[1].velocity = (uint8_t)atoi(buffer_data[2]);
+			  } else if (strcmp(buffer_data[1],"Z")){
+				  motors[2].velocity = (uint8_t)atoi(buffer_data[2]);
+			  } else {
+				  sprintf(buffer_tx, "Error en setear velocidades\r\n");
+				  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+				  HAL_Delay(150);
+			  }
+		  }
+		  //	CASO DE SETEO DE POSICIONES
+		  else if (buffer_data[0][0] == 'D'){
+			  char posiciones[3][5];
+			  CDC_FS_Substring(2, 4, buffer_rx, posiciones[0]);
+			  CDC_FS_Substring(6, 8, buffer_rx, posiciones[1]);
+			  CDC_FS_Substring(9, 11, buffer_rx, posiciones[2]);
+			  for (int i = 0; i < NUM_MOTORS; ++i) {
+				  motors[i].newPosition = (uint8_t)atoi(buffer_data[i]);
+			  }
+		  }
+		  //	CASO DE CONTROL DEL GRIPPER
+		  else if (buffer_data[0][0] == 'P'){
+			  CDC_FS_Substring(2, 4, buffer_rx, buffer_data[2]);
+			  if (((uint8_t)atoi(buffer_data[2]) < 90) && ((uint8_t)atoi(buffer_data[2]) > 0)){
+				  Servo_Write_angle((uint8_t)atoi(buffer_data[2]));
+				  estadoGarra = 0;
+				  sprintf(buffer_tx, "La Garra ha sido cerrada.\r\n");
+				  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+				  Lcd_Set_Cursor(2, 16);
+				  Lcd_Send_Char('C');
+				  HAL_Delay(150);
+			  } else if (((uint8_t)atoi(buffer_data[2]) >= 90)&& ((uint8_t)atoi(buffer_data[2]) > 0)){
+				  Servo_Write_angle((uint8_t)atoi(buffer_data[2]));
+				  estadoGarra = 1;
+				  sprintf(buffer_tx, "La Garra ha sido abierta.\r\n");
+				  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+				  Lcd_Set_Cursor(2, 16);
+				  Lcd_Send_Char('A');
+				  HAL_Delay(150);
+			  } else {
+				  sprintf(buffer_tx, "Error, valor invalido Gripper! \r\n");
+				  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+				  Lcd_Set_Cursor(2, 16);
+				  Lcd_Send_Char('?');
+				  HAL_Delay(150);
+			  }
+		  }
+		  //	CASO DE HABILITACION DE MOTORES
+		  else if (buffer_data[0][0] == 'E'){
+			  CDC_FS_Substring(2, 2, buffer_rx, buffer_data[2]);
+			  if (((uint8_t)atoi(buffer_data[2]) == 1) && !((uint8_t)atoi(buffer_data[2]) < 0)){
+				  ActivatedAll((uint8_t)atoi(buffer_data[2]));
+				  sprintf(buffer_tx, "Se habilitaron los Motores.\r\n");
+				  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+				  Lcd_Set_Cursor(1, 1);
+				  Lcd_Send_String("Motores Enables!");
+				  HAL_Delay(150);
+			  } else if (((uint8_t)atoi(buffer_data[2]) == 0)&& !((uint8_t)atoi(buffer_data[2]) < 0)){
+				  ActivatedAll((uint8_t)atoi(buffer_data[2]));
+				  sprintf(buffer_tx, "Se deshabilitaron los Motores.\r\n");
+				  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+				  Lcd_Set_Cursor(1, 1);
+				  Lcd_Send_String("Motores Disables");
+				  HAL_Delay(150);
+			  } else {
+				  sprintf(buffer_tx, "Error, ON/OFF motores! \r\n");
+				  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+				  Lcd_Set_Cursor(1, 1);
+				  Lcd_Send_String("<E ? Motores>");
+				  HAL_Delay(150);
+			  }
+		  }
+		  //	CASO DE HABILITACION DE MOTORES
+		  else if (buffer_data[0][0] == 'S'){
+			  ActivatedAll(-1);
+			  sprintf(buffer_tx, "Se han detenido los Motores.\r\n");
+			  Lcd_Set_Cursor(1, 1);
+			  Lcd_Send_String("Motores Detenidos!");
+			  HAL_Delay(150);
+		  }
+		  flagUsb = 0;
+	  }
+	  else {
+		  if (countHome == 0){
+			  Lcd_Set_Cursor(1,1);
+			  Lcd_Send_String("Estado Global");
+			  Lcd_Set_Cursor(2,1);
+			  Lcd_Send_String("X???|Y???|Z???|?");
+			  sprintf(buffer_tx, "Estado no definido\r\n");
+			  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+			  HAL_Delay(750);
+		  } else {
+			  sprintf(buffer_tx, "Estado definido\r\n");
+			  //	MOVER MOTORES
+			  for (int k = 0; k < NUM_MOTORS; ++k) {
+				  moveMotors(&motors[k], &motors[k].newPosition, &motors[k].velocity);
+			  }
+			  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
+			  //	Actualizar LCD con datos
+			  char posicionMotores[16];
+			  char charGarra = '?';
+			  if (estadoGarra == 0){
+				  charGarra = 'C';
+			  } else if (estadoGarra == 1){
+				  charGarra = 'A';
+			  }
+			  char* position[3][4];
+			  for (int i = 0; i < NUM_MOTORS; ++i) {
+				  for (int j = 0; j < NUM_MOTORS; ++j) {
+					  position[i][j] = '\0';
+				  }
+			  }
+			  for (int j = 0; j < NUM_MOTORS; ++j) {
+				  if (motors[j].currentPosition < 10){
+					  //Agrego dos 0
+					  sprintf(*position[j], "00%u", motors[j].currentPosition);
+				  } else if (motors[j].currentPosition < 100){
+					  //Agrego 1 cero
+					  sprintf(*position[j], "0%u", motors[j].currentPosition);
+				  } else {
+					  //No agrego 0
+					  sprintf(*position[j], "%u", motors[j].currentPosition);
+				  }
+			  }
+			  sprintf(posicionMotores, "X%s|Y%s|Z%s|%c", position[0], position[1], position[2], charGarra);
+			  Lcd_Set_Cursor(2, 1);
+			  Lcd_Send_String(posicionMotores);
+			  HAL_Delay(750);
+		  }
 	  }
 
-	  // Movimiento consigna
-	  thetaTargetMotor_X = 25.0;
-	  velocidadTargetMotor_X = 5;
-	  moverX(thetaTargetMotor_X, velocidadTargetMotor_X);
-	  HAL_Delay(1000);
-	  thetaTargetMotor_X = 50.0;
-	  velocidadTargetMotor_X = 25;
-	  moverX(thetaTargetMotor_X, velocidadTargetMotor_X);
-	  HAL_Delay(1000);
-	  thetaTargetMotor_X = 0.0;
-	  velocidadTargetMotor_X = 20;
-	  moverX(thetaTargetMotor_X, velocidadTargetMotor_X);
-	  HAL_Delay(1000);
-	  /*
-	  thetaTargetMotor_X = 100.0;
-	  velocidadTargetMotor_X = 50;
-	  moverX(thetaTargetMotor_X, velocidadTargetMotor_X);
-	  HAL_Delay(1000);
-
-	  /*
-	  int miCcr = 0;  // Inicializamos el valor del CCR1 en 0
-	  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);  // Iniciamos la generación de PWM en el canal 1
-	  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
-	  for (int var = 0; var <= 100; var = var + 10)
-	  {
-	    miCcr = (10000 * var) / 100;
-	    TIM4->CCR4 = miCcr;
-	    TIM2->CCR1 = miCcr;
-	    HAL_Delay(1000);
-	  }
-	    TIM4->CCR4 = 0;
-	    TIM2->CCR1 = 0;
-	  HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);  // Detenemos la generación de PWM en el canal 1
-	  HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_4);
-	  HAL_GPIO_TogglePin(DirM_X_GPIO_Port, DirM_X_Pin);
-	  HAL_Delay(1000);
-	  */
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -296,99 +526,122 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
-int HomingMotors(uint8_t* hmX, uint8_t* hmY, uint8_t* hmZ){
-
-	ActivatedAll();
-
-	velMotor_X = 100;
-	velMotor_Y = 100;
-	velMotor_Z = 100;
-
-	while (*hmX == 0){
-		*hmX = flagStopM_X;
-	}
-	while (*hmY == 0){
-		*hmY = flagStopM_Y;
-	}
-	while (*hmZ == 0){
-		*hmZ = flagStopM_Z;
-	}
-	velMotor_X = 0;
-	velMotor_Y = 0;
-	velMotor_Z = 0;
-	thetaMotor_X = 0;
-	thetaMotor_Y = 0;
-	thetaMotor_Z = 0;
-
-	moverX(2, 70);
-	return 1;
-}
-
-void moverX(float target, uint16_t velocidad){
-	while (thetaMotor_X != target){
-		// llegar a objetico
-		while (thetaMotor_X > target){
-			DirM_X = 1;
-			HAL_GPIO_WritePin(DirM_X_GPIO_Port, DirM_X_Pin, SET);
-			velMotor_X = velocidad;
-			// alcanzar el objetivo
-		}
-		while (thetaMotor_X < target){
-			DirM_X = 0;
-			HAL_GPIO_WritePin(DirM_X_GPIO_Port, DirM_X_Pin, RESET);
-			velMotor_X = velocidad;
-		}
-		//*flagStop = 1;
-		velMotor_X = 0;
-	}
-}
-/*
-void moverEje(char eje, float target, uint16_t velocidad) {
-    float* thetaMotor;
-    GPIO_TypeDef* dirPort;
-    uint16_t dirPin;
-
-    if (eje == 'x') {
-        thetaMotor = &thetaMotor_X;
-        dirPort = DirM_X_GPIO_Port;
-        dirPin = DirM_X_Pin;
-    } else if (eje == 'y') {
-        thetaMotor = &thetaMotor_Y;
-        dirPort = DirM_Y_GPIO_Port;
-        dirPin = DirM_Y_Pin;
-    } else if (eje == 'z') {
-        thetaMotor = &thetaMotor_Z;
-        dirPort = DirM_Z_GPIO_Port;
-        dirPin = DirM_Z_Pin;
-    } else {
-        // Manejo de error en caso de que se proporcione un carácter no válido
-        return;
+int HomingMotors(uint8_t* hmX, uint8_t* hmY, uint8_t* hmZ) {
+	ActivatedAll(1);
+    // Activar todos los motores y configurar velocidades
+    for (int i = 0; i < NUM_MOTORS; i++) {
+		motors[i].stepInterval = TIMER_FREQUENCY / (50 * motors[i].microStepping);
+        motors[i].stopFlag = 1;   // Deshabilitar el movimiento
     }
 
-    while (*thetaMotor != target) {
-        // Llegar al objetivo en el eje especificado
-        if (*thetaMotor > target) {
-            HAL_GPIO_WritePin(dirPort, dirPin, SET);
-        } else if (*thetaMotor < target) {
-            HAL_GPIO_WritePin(dirPort, dirPin, RESET);
-        }
-
-        velMotor_X = velocidad;  // Se actualiza la velocidad según el eje actual
-
-        // Alcanzar el objetivo en el eje especificado
-
-        velMotor_X = 0;  // Se detiene el motor en el eje actual
+    // Verificar el home de cada motor
+    motors[0].stopFlag = 0;
+    motors[1].stopFlag = 1;
+    motors[2].stopFlag = 1;
+	contSeconds = 0;
+    HAL_TIM_Base_Start_IT(&htim3);
+    while ((*hmX == 0 )&&(contSeconds < 3)){
+        *hmX = motors[0].stopFlag;
     }
-}
-*/
-void ActivatedAll (void){
-	  HAL_GPIO_WritePin(ResetMotors_GPIO_Port, ResetMotors_Pin, RESET);
-	  HAL_GPIO_WritePin(SleepMotors_GPIO_Port, SleepMotors_Pin, RESET);
-	  HAL_GPIO_WritePin(EnableMotors_GPIO_Port, EnableMotors_Pin, RESET);
+	motors[0].stopFlag = 1;
+	motors[1].stopFlag = 0;
+	motors[2].stopFlag = 1;
+	contSeconds = 0;
+    while ((*hmY == 0 )&&(contSeconds < 3)){
+        *hmY = motors[1].stopFlag;
+    }
+    motors[0].stopFlag = 1;
+    motors[1].stopFlag = 1;
+    motors[2].stopFlag = 0;
+	contSeconds = 0;
+    while ((*hmZ == 0 )&&(contSeconds < 3)){
+        *hmZ = motors[2].stopFlag;
+    }
+    HAL_TIM_Base_Stop_IT(&htim3);
+    for (int i = 0; i < NUM_MOTORS; i++) {
+        motors[i].velocity = 0; // Detener el motor
+        motors[i].stepInterval = 0; // Detener el motor
+        motors[i].currentPosition = 0; // Reiniciar la posición actual
+        motors[i].stopFlag = 0;   // Habilitar el movimiento
+    }
+    if ((*hmX == 1 )&&(*hmY == 1 )&&(*hmZ == 1 )){// Apagar todos los motores y reiniciar posiciones
+        countHome++;
+        return 0;
+    } else if (*hmX == 0 ){
+    	return -1;
+    } else if (*hmY == 0 ){
+    	return -2;
+    } else if (*hmZ == 0 ){
+    	return -3;
+    }
+    return 1;
 }
 
+int targetComplete(StepperMotor *motor){
+	uint8_t target = 0;
+	for(int i = 0; i < NUM_MOTORS; i++){
+		if (motor[i].currentPosition == motor[i].newPosition){
+			target++;
+		}
+	}
+	if (target == 3){
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+//	Función para definir comportamiento de los motores
+void ActivatedAll (int habilitar){
+	//		Pines Enable, Reset y Sleep comporten los mismos bus de datos
+	//		para cada uno respectivamente de los distintos motores.
+	//		Se recuerda que los pines son erntradas de lógica negada al A4988
+	if (habilitar == -1){
+	    for (int i = 0; i < NUM_MOTORS; i++) {
+	        motors[i].velocity = 0; // Detener el motor
+	        motors[i].stepInterval = 0; // Reiniciar la posición actual
+	        motors[i].stopFlag = 1;   // Habilitar el movimiento
+	    }
+	}
+	else if (habilitar == 1){
+		HAL_GPIO_WritePin(ResetMotors_GPIO_Port, ResetMotors_Pin, SET);			//	Se deshabilita el RESET
+		HAL_GPIO_WritePin(SleepMotors_GPIO_Port, SleepMotors_Pin, SET);			//	Se deshabilita el SLEEP
+		HAL_GPIO_WritePin(EnableMotors_GPIO_Port, EnableMotors_Pin, RESET);			//	Se habilita el ENABLE
+	}
+	else if (habilitar == 0){
+		HAL_GPIO_WritePin(ResetMotors_GPIO_Port, ResetMotors_Pin, RESET);			//	Se deshabilita el RESET
+		HAL_GPIO_WritePin(SleepMotors_GPIO_Port, SleepMotors_Pin, RESET);			//	Se deshabilita el SLEEP
+		HAL_GPIO_WritePin(EnableMotors_GPIO_Port, EnableMotors_Pin, SET);			//	Se habilita el ENABLE
+	}
+}
+
+//	Función para convertir grados a radianes
 float deg2rad(float degrees) {
-  return degrees * (M_PI / 180.0);
+	return degrees * (M_PI / 180.0);
+}
+
+// Función para configurar el intervalo de paso en función de la velocidad del motor
+void moveMotors(StepperMotor *motor, int *newPosition, int *velocity) {
+	if (velocity != 0){
+		motor->velocity = *velocity;
+	}
+	if (newPosition !=0){
+		motor->newPosition = *newPosition;
+	}
+	if (motor->velocity != 0){
+		if (motor->currentPosition < motor->newPosition){
+			motor->direction = 0;
+			motor->stopFlag = 0;
+			motor->stepInterval = TIMER_FREQUENCY / (motor->velocity * motor->microStepping);
+		} else if (motor->currentPosition > motor->newPosition){
+			motor->direction = 1;
+			motor->stopFlag = 0;
+			motor->stepInterval = TIMER_FREQUENCY / (motor->velocity * motor->microStepping);
+		}
+	} else {
+		motor->stepInterval = 0;
+		motor->stopFlag = 1;
+	}
 }
 
 // Función de retrollamada (callback) para la interrupción externa EXTI3
@@ -397,70 +650,88 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	if (GPIO_Pin == StopM_X_Pin){
 		if (flagStopM_X == 1){
 			flagStopM_X = 0;
+			motors[0].stopFlag = 0;
 		} else {
 			velMotor_X = 0;
 			flagStopM_X = 1;
+			motors[0].stopFlag = 1;
 		}
 		HAL_GPIO_TogglePin(azul_GPIO_Port, azul_Pin);
 	}
-	/*
-	 *
-	if (GPIO_Pin == GPIO_PIN_9)
-  // if (HAL_GPIO_ReadPin(StopM1_GPIO_Port, StopM1_Pin) == GPIO_PIN_RESET)
-  {
-    // Se detectó un flanco descendente en PA3, detener el motor
-    HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);  // Detener la generación de la señal PWM en el canal 1
-    HAL_GPIO_WritePin(EnableMotor_GPIO_Port, EnableMotor_Pin, GPIO_PIN_SET);
-  }
-  else
-  {
-    // Se detectó un flanco ascendente en PA3, reanudar el motor
-    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);  // Iniciar la generación de la señal PWM en el canal 1
-    HAL_GPIO_WritePin(EnableMotor_GPIO_Port, EnableMotor_Pin, GPIO_PIN_RESET);
-  }
-
-	*/
+	else if (GPIO_Pin == StopM_Y_Pin){
+		if (flagStopM_Y == 1){
+			flagStopM_Y = 0;
+			motors[1].stopFlag = 0;
+		} else {
+			velMotor_Y = 0;
+			flagStopM_Y = 1;
+			motors[1].stopFlag = 1;
+		}
+		HAL_GPIO_TogglePin(azul_GPIO_Port, azul_Pin);
+	}
+	else if (GPIO_Pin == StopM_Z_Pin){
+		if (flagStopM_Z == 1){
+			flagStopM_Z = 0;
+			motors[2].stopFlag = 0;
+		} else {
+			velMotor_Z = 0;
+			flagStopM_Z = 1;
+			motors[2].stopFlag = 1;
+		}
+		HAL_GPIO_TogglePin(azul_GPIO_Port, azul_Pin);
+	}
   HAL_GPIO_EXTI_IRQHandler(StopM_X_Pin);  // Limpiar la bandera de interrupción EXTI3
 }
 
-/*
-// Función para el callback del conversor ADC
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
-{
-	TIM2->CCR2 = adcVal;
+//	Función para mover el servo
+void Servo_Write_angle(uint16_t theta){
+	uint16_t pwm_servo;
+	pwm_servo = (uint16_t)((theta-0)*(PULSE_MAX-PULSE_MIN)/(180-0)+PULSE_MIN);
+	__HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_4, pwm_servo);
 }
-*/
+
+//	FUNCIÓN PARA DIVIDIR Y COPIAR CADENAS (formatear)
+void CDC_FS_Substring(uint8_t inicioCadena, uint8_t finCadena, char* str, char* dst){
+	uint8_t pt = 0;
+	for (uint16_t lt=inicioCadena; lt<finCadena; lt++){
+		dst[pt] = str [lt];
+		pt++;
+	}
+	dst[pt] = '\0';
+	pt = 0;
+}
 
 
-// Función de retrollamada (callback) para la interrupción de desbordamiento del temporizador TIM2
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  if (htim->Instance == TIM2)  // Verificar si la interrupción es del temporizador TIM2
-  {
-	  contador++;
-	  if ((velMotor_X > 0) && (contador % velMotor_X == 0))
-	  {
-		  if (flagStopM_X == 0){
-			  HAL_GPIO_WritePin(StepM_X_GPIO_Port, StepM_X_Pin, SET);
-			  if (DirM_X == 0){
-				  thetaMotor_X = (thetaMotor_X + 1) / microSteppingM_X;
-			  } else {
-				  thetaMotor_X = (thetaMotor_X - 1) / microSteppingM_X;
-			  }
-		  }
-		  contador = 0;
-		  HAL_GPIO_WritePin(StepM_X_GPIO_Port, StepM_X_Pin, RESET);
-	  }
-	  else
-	  {
-		  //
-	  }
-  }
-  if (htim->Instance == TIM3)  // Verificar si la interrupción es del temporizador TIM3
-  {
-	  HAL_GPIO_TogglePin(LedPcb_GPIO_Port, LedPcb_Pin);		// Cambia el estado del led PC13 cada vez que salta la interrupción
-  }
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+    if (htim->Instance == TIM2) {
+		for (int i = 0; i < NUM_MOTORS; i++) {
+			StepperMotor *motor = &motors[i];
+			motor->stepCounter++;
+			if ((motor->newPosition != motor->currentPosition) || (countHome >= 0)){
+				if ((motor->stepCounter >= motor->stepInterval)&&(motor->stepInterval != 0)) {
+					motor->stepCounter = 0;
+					if (motor->stopFlag == 0) {
+						if (motor->direction == 0) {
+							motor->currentPosition += 1;
+							HAL_GPIO_WritePin(motor->dirPort, motor->dirPin, SET);
+						} else {
+							motor->currentPosition -= 1;
+							HAL_GPIO_WritePin(motor->dirPort, motor->dirPin, RESET);
+						}
+						HAL_GPIO_WritePin(motor->stepPort, motor->stepPin, SET);
+					}
+					HAL_GPIO_WritePin(motor->stepPort, motor->stepPin, RESET);
+				}
+			}
+		}
+
+	}
+	if (htim->Instance == TIM3){
+		//		TIMER para contar segundos
+		contSeconds++;
+	}
 }
+
 
 /* USER CODE END 4 */
 
@@ -490,8 +761,9 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
+  USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+  return (USBD_OK);
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

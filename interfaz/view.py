@@ -9,22 +9,22 @@ class View(QMainWindow):
         self.setGeometry(100, 100, 400, 300)
 
         self.label_select_port = QLabel("Seleccionar puerto COM:", self)
-        self.label_select_port.setGeometry(20, 20, 150, 20)
+        self.label_select_port.setGeometry(20, 20, 170, 20)
 
         self.combo_ports = QComboBox(self)
-        self.combo_ports.setGeometry(180, 20, 150, 20)
+        self.combo_ports.setGeometry(180, 20, 170, 20)
 
         self.label_send_data = QLabel("Enviar datos al dispositivo:", self)
-        self.label_send_data.setGeometry(20, 60, 150, 20)
+        self.label_send_data.setGeometry(20, 60, 170, 20)
 
         self.text_input = QLineEdit(self)
-        self.text_input.setGeometry(180, 60, 150, 20)
+        self.text_input.setGeometry(180, 60, 170, 20)
 
         self.button_send = QPushButton("Enviar", self)
         self.button_send.setGeometry(180, 100, 80, 25)
 
         self.label_sent_received = QLabel("Datos enviados y recibidos:", self)
-        self.label_sent_received.setGeometry(20, 140, 150, 20)
+        self.label_sent_received.setGeometry(20, 140, 160, 20)
 
         self.text_output = QTextEdit(self)
         self.text_output.setGeometry(20, 170, 350, 100)

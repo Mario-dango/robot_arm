@@ -54,11 +54,11 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(LedPcb_GPIO_Port, LedPcb_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, StepM_Z_Pin|StepM_Y_Pin|StepM_X_Pin|DirM_Z_Pin
-                          |DirM_Y_Pin|DirM_X_Pin|azul_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, StepM_Z_Pin|PinRoto1_Pin|StepM_X_Pin|DirM_Z_Pin
+                          |DirM_Y_Pin|DirM_X_Pin|azul_Pin|StepM_Y_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, ResetMotors_Pin|SleepMotors_Pin|EnableMotors_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, ResetMotors_Pin|SleepMotors_Pin|PinRoto2_Pin|EnableMotors_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = LedPcb_Pin;
@@ -68,9 +68,9 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(LedPcb_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PAPin PAPin PAPin PAPin
-                           PAPin PAPin PAPin */
-  GPIO_InitStruct.Pin = StepM_Z_Pin|StepM_Y_Pin|StepM_X_Pin|DirM_Z_Pin
-                          |DirM_Y_Pin|DirM_X_Pin|azul_Pin;
+                           PAPin PAPin PAPin PAPin */
+  GPIO_InitStruct.Pin = StepM_Z_Pin|PinRoto1_Pin|StepM_X_Pin|DirM_Z_Pin
+                          |DirM_Y_Pin|DirM_X_Pin|azul_Pin|StepM_Y_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -82,8 +82,8 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PBPin PBPin PBPin */
-  GPIO_InitStruct.Pin = ResetMotors_Pin|SleepMotors_Pin|EnableMotors_Pin;
+  /*Configure GPIO pins : PBPin PBPin PBPin PBPin */
+  GPIO_InitStruct.Pin = ResetMotors_Pin|SleepMotors_Pin|PinRoto2_Pin|EnableMotors_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

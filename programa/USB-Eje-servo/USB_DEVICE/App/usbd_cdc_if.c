@@ -23,6 +23,8 @@
 
 /* USER CODE BEGIN INCLUDE */
 
+extern uint8_t flagUsb;
+extern char buffer_rx[20];
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -261,6 +263,11 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
   /* USER CODE BEGIN 6 */
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+  //	Agregado para copiar lo recibido del Bufer al vector rx
+  Buf[(*Len)-2] = '\0';
+  strcpy(buffer_rx, (char*)Buf);
+  flagUsb = 1;
+  //	Se termina levantando la bandera de recepción para el main
   return (USBD_OK);
   /* USER CODE END 6 */
 }

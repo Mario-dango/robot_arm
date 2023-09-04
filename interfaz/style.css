@@ -1,0 +1,47 @@
+QMainWindow {
+    background-color: #292F36;
+}
+
+QMessageBox{
+    background-color: #292F36;
+}
+
+QLabel {
+    color: #E8E8E8;
+    font-size: 14px;
+}
+
+QComboBox, QLineEdit {
+    color: #E8E8E8;
+    background-color: #1E2229;
+    border: 1px solid #58697C;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 12px;
+}
+
+QComboBox::drop-down {
+    width: 20px;
+}
+
+QPushButton {
+    color: #E8E8E8;
+    background-color: #2979FF;
+    border: none;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 12px;
+}
+
+QPushButton:hover {
+    background-color: #1C65D9;
+}
+
+QTextEdit {
+    color: #E8E8E8;
+    background-color: #1E2229;
+    border: 1px solid #58697C;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 12px;
+}

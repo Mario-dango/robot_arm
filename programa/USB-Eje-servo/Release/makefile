@@ -56,6 +56,12 @@ default.size.stdout \
 OBJDUMP_LIST += \
 USB-Eje-servo.list \
 
+OBJCOPY_HEX += \
+USB-Eje-servo.hex \
+
+OBJCOPY_BIN += \
+USB-Eje-servo.bin \
+
 
 # All Target
 all: main-build
@@ -79,12 +85,22 @@ USB-Eje-servo.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
+USB-Eje-servo.hex: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objcopy  -O ihex $(EXECUTABLES) "USB-Eje-servo.hex"
+	@echo 'Finished building: $@'
+	@echo ' '
+
+USB-Eje-servo.bin: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "USB-Eje-servo.bin"
+	@echo 'Finished building: $@'
+	@echo ' '
+
 # Other Targets
 clean:
-	-$(RM) USB-Eje-servo.elf USB-Eje-servo.list USB-Eje-servo.map default.size.stdout
+	-$(RM) USB-Eje-servo.bin USB-Eje-servo.elf USB-Eje-servo.hex USB-Eje-servo.list USB-Eje-servo.map default.size.stdout
 	-@echo ' '
 
-secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
+secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_HEX) $(OBJCOPY_BIN)
 
 fail-specified-linker-script-missing:
 	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'

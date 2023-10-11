@@ -253,6 +253,7 @@ void EXTI15_10_IRQHandler(void)
   HAL_GPIO_EXTI_IRQHandler(StopM_Z_Pin);
   HAL_GPIO_EXTI_IRQHandler(StopM_Y_Pin);
   HAL_GPIO_EXTI_IRQHandler(StopM_X_Pin);
+  HAL_GPIO_EXTI_IRQHandler(STOP_btn_Pin);
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
 
   /* USER CODE END EXTI15_10_IRQn 1 */

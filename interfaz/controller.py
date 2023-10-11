@@ -23,6 +23,7 @@ class Controller:
 
     def setup_signals(self):
         self.view.button_send.clicked.connect(self.send_data)
+        self.view.button_refresh.clicked.connect(self.update_available_ports)
 
     def update_available_ports(self):
         ports = self.model.get_available_ports()

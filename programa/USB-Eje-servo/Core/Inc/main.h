@@ -61,8 +61,8 @@ void Error_Handler(void);
 #define LedPcb_GPIO_Port GPIOC
 #define StepM_Z_Pin GPIO_PIN_0
 #define StepM_Z_GPIO_Port GPIOA
-#define PinRoto1_Pin GPIO_PIN_1
-#define PinRoto1_GPIO_Port GPIOA
+#define StepM_Y_Pin GPIO_PIN_1
+#define StepM_Y_GPIO_Port GPIOA
 #define StepM_X_Pin GPIO_PIN_2
 #define StepM_X_GPIO_Port GPIOA
 #define DirM_Z_Pin GPIO_PIN_3
@@ -82,14 +82,15 @@ void Error_Handler(void);
 #define StopM_X_Pin GPIO_PIN_14
 #define StopM_X_GPIO_Port GPIOB
 #define StopM_X_EXTI_IRQn EXTI15_10_IRQn
-#define ResetMotors_Pin GPIO_PIN_15
-#define ResetMotors_GPIO_Port GPIOB
-#define StepM_Y_Pin GPIO_PIN_8
-#define StepM_Y_GPIO_Port GPIOA
-#define SleepMotors_Pin GPIO_PIN_4
-#define SleepMotors_GPIO_Port GPIOB
-#define PinRoto2_Pin GPIO_PIN_5
-#define PinRoto2_GPIO_Port GPIOB
+#define STOP_btn_Pin GPIO_PIN_15
+#define STOP_btn_GPIO_Port GPIOB
+#define STOP_btn_EXTI_IRQn EXTI15_10_IRQn
+#define Home_led_Pin GPIO_PIN_3
+#define Home_led_GPIO_Port GPIOB
+#define Finish_led_Pin GPIO_PIN_4
+#define Finish_led_GPIO_Port GPIOB
+#define Wait_led_Pin GPIO_PIN_5
+#define Wait_led_GPIO_Port GPIOB
 #define EnableMotors_Pin GPIO_PIN_8
 #define EnableMotors_GPIO_Port GPIOB
 

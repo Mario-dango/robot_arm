@@ -210,16 +210,14 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_TIM4_Init();
   MX_TIM3_Init();
-  MX_I2C2_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
   // Apartado para inicializar el LCD
   Lcd_Init();
 
 
-  ///// Configurar los Buses Reset, Sleep y Enable
-  HAL_GPIO_WritePin(ResetMotors_GPIO_Port, ResetMotors_Pin, RESET);
-  HAL_GPIO_WritePin(SleepMotors_GPIO_Port, SleepMotors_Pin, RESET);
+  ///// Configurar el bus Enable
   HAL_GPIO_WritePin(EnableMotors_GPIO_Port, EnableMotors_Pin, SET);
 
   // Inicialización de cada motor
@@ -422,6 +420,7 @@ int main(void)
 		  }
 		  flagUsb = 0;
 	  }
+	  // Sin bandera de usb detectada
 	  else {
 		  if (countHome == 0){
 			  Lcd_Set_Cursor(1,1);
@@ -431,7 +430,9 @@ int main(void)
 			  sprintf(buffer_tx, "Estado no definido\r\n");
 			  CDC_Transmit_FS((uint8_t*)buffer_tx, strlen(buffer_tx));
 			  HAL_Delay(750);
-		  } else {
+		  }
+		  //	Caso de que el Home se haya realizado
+		  else {
 			  sprintf(buffer_tx, "Estado definido\r\n");
 			  //	MOVER MOTORES
 			  for (int k = 0; k < NUM_MOTORS; ++k) {
@@ -604,14 +605,10 @@ void ActivatedAll (int habilitar){
 	    }
 	}
 	else if (habilitar == 1){
-		HAL_GPIO_WritePin(ResetMotors_GPIO_Port, ResetMotors_Pin, SET);			//	Se deshabilita el RESET
-		HAL_GPIO_WritePin(SleepMotors_GPIO_Port, SleepMotors_Pin, SET);			//	Se deshabilita el SLEEP
 		HAL_GPIO_WritePin(EnableMotors_GPIO_Port, EnableMotors_Pin, RESET);			//	Se habilita el ENABLE
 	}
 	else if (habilitar == 0){
-		HAL_GPIO_WritePin(ResetMotors_GPIO_Port, ResetMotors_Pin, RESET);			//	Se deshabilita el RESET
-		HAL_GPIO_WritePin(SleepMotors_GPIO_Port, SleepMotors_Pin, RESET);			//	Se deshabilita el SLEEP
-		HAL_GPIO_WritePin(EnableMotors_GPIO_Port, EnableMotors_Pin, SET);			//	Se habilita el ENABLE
+		HAL_GPIO_WritePin(EnableMotors_GPIO_Port, EnableMotors_Pin, SET);			//	Se Deshabilita el ENABLE
 	}
 }
 
@@ -647,6 +644,13 @@ void moveMotors(StepperMotor *motor, int *newPosition, int *velocity) {
 // Función de retrollamada (callback) para la interrupción externa EXTI3
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
+	if (GPIO_Pin == STOP_btn_Pin){
+		HAL_GPIO_WritePin(EnableMotors_GPIO_Port, EnableMotors_Pin, SET);			//	Se Deshabilita el ENABLE
+	    // Activar todos los motores y configurar velocidades
+	    for (int i = 0; i < NUM_MOTORS; i++) {
+	        motors[i].stopFlag = 1;   // Deshabilitar el movimiento
+	    }
+	}
 	if (GPIO_Pin == StopM_X_Pin){
 		if (flagStopM_X == 1){
 			flagStopM_X = 0;
@@ -681,6 +685,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		HAL_GPIO_TogglePin(azul_GPIO_Port, azul_Pin);
 	}
   HAL_GPIO_EXTI_IRQHandler(StopM_X_Pin);  // Limpiar la bandera de interrupción EXTI3
+  HAL_GPIO_EXTI_IRQHandler(StopM_Y_Pin);  // Limpiar la bandera de interrupción EXTI3
+  HAL_GPIO_EXTI_IRQHandler(StopM_Z_Pin);  // Limpiar la bandera de interrupción EXTI3
+  HAL_GPIO_EXTI_IRQHandler(STOP_btn_Pin);  // Limpiar la bandera de interrupción EXTI3
 }
 
 //	Función para mover el servo

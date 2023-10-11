@@ -12,8 +12,13 @@ class Model:
         return self.ports
 
     def send_data(self, port, data):
+        if self.serial_port is not None:            
+            try:
+                string_byte = data.encode('utf-8')
+                self.serial_port.write(string_byte)
+            except:
+                print('An exception occurred')
         # Aquí puedes agregar la lógica para enviar los datos al puerto COM seleccionado
-        pass
     
     def open_serial_port(self, port):
         self.serial_port = serial.Serial(port, 115200)  # Configura el puerto con la velocidad de transmisión adecuada

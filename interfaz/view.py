@@ -21,7 +21,10 @@ class View(QMainWindow):
         self.text_input.setGeometry(180, 60, 170, 20)
 
         self.button_send = QPushButton("Enviar", self)
-        self.button_send.setGeometry(180, 100, 80, 25)
+        self.button_send.setGeometry(100, 100, 80, 25)
+        
+        self.button_refresh = QPushButton("Refrescar", self)
+        self.button_refresh.setGeometry(240, 100, 80, 25)
 
         self.label_sent_received = QLabel("Datos enviados y recibidos:", self)
         self.label_sent_received.setGeometry(20, 140, 160, 20)

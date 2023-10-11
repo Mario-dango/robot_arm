@@ -11,7 +11,7 @@ void Lcd_Send_Cmd(char cmd)
 	data_t[1] = data_u|0x08;
 	data_t[2] = data_l|0x0C;
 	data_t[3] = data_l|0x08;
-	HAL_I2C_Master_Transmit(&hi2c2, LCD_ADDRESS,(uint8_t*) data_t, 4, 100);
+	HAL_I2C_Master_Transmit(&hi2c1, LCD_ADDRESS,(uint8_t*) data_t, 4, 100);
 }
 
 void Lcd_Send_Char(char data)
@@ -24,7 +24,7 @@ void Lcd_Send_Char(char data)
 	data_t[1] = data_u|0x09;
 	data_t[2] = data_l|0x0D;
 	data_t[3] = data_l|0x09;
-	HAL_I2C_Master_Transmit(&hi2c2, LCD_ADDRESS,(uint8_t*) data_t, 4, 100);
+	HAL_I2C_Master_Transmit(&hi2c1, LCD_ADDRESS,(uint8_t*) data_t, 4, 100);
 }
 
 void Lcd_Init(void)

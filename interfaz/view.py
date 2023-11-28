@@ -36,7 +36,7 @@ class View(QMainWindow):
         self.set_stylesheet()
 
     def set_stylesheet(self):
-        with open("style.css", "r") as file:
+        with open("interfaz\style.css", "r") as file:
             style_sheet = file.read()
             self.setStyleSheet(style_sheet)
 

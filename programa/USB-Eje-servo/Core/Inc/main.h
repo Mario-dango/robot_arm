@@ -32,6 +32,13 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include "lcd_i2c.h"
+#include <math.h>
+#include <usbd_cdc_if.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -71,8 +78,6 @@ void Error_Handler(void);
 #define DirM_Y_GPIO_Port GPIOA
 #define DirM_X_Pin GPIO_PIN_5
 #define DirM_X_GPIO_Port GPIOA
-#define azul_Pin GPIO_PIN_7
-#define azul_GPIO_Port GPIOA
 #define StopM_Z_Pin GPIO_PIN_12
 #define StopM_Z_GPIO_Port GPIOB
 #define StopM_Z_EXTI_IRQn EXTI15_10_IRQn
@@ -95,6 +100,16 @@ void Error_Handler(void);
 #define EnableMotors_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
+
+//	Valores para el gripper sg90
+#define PULSE_MIN 550
+#define PULSE_MAX 2450
+
+// Definición de las frecuencias de temporización (en Hertz)
+#define TIMER_FREQUENCY 1000 // Por ejemplo, 1000 Hz (1 ms de intervalo)
+
+// Número de motores que estás utilizando
+#define NUM_MOTORS 3
 
 /* USER CODE END Private defines */
 

@@ -1314,7 +1314,7 @@ NoConn ~ 7100 5350
 NoConn ~ 7000 5350
 Connection ~ 6500 4550
 Wire Wire Line
-	6350 4750 6350 4950
+	6350 4750 6350 4800
 Wire Wire Line
 	6500 4600 6350 4750
 Wire Wire Line
@@ -1553,12 +1553,12 @@ Wire Wire Line
 $Comp
 L power:GNDREF #PWR013
 U 1 1 646CE458
-P 6350 4950
-F 0 "#PWR013" H 6350 4700 50  0001 C CNN
-F 1 "GNDREF" H 6355 4777 50  0000 C CNN
-F 2 "" H 6350 4950 50  0001 C CNN
-F 3 "" H 6350 4950 50  0001 C CNN
-	1    6350 4950
+P 6250 4950
+F 0 "#PWR013" H 6250 4700 50  0001 C CNN
+F 1 "GNDREF" H 6255 4777 50  0000 C CNN
+F 2 "" H 6250 4950 50  0001 C CNN
+F 3 "" H 6250 4950 50  0001 C CNN
+	1    6250 4950
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -2026,19 +2026,15 @@ F 3 "~" H 6750 2550 50  0001 C CNN
 	1    6750 2550
 	0    1    -1   0   
 $EndComp
-Wire Wire Line
-	7100 2800 7100 2700
-Wire Wire Line
-	7150 2850 7100 2800
 $Comp
 L power:+3.3V #PWR0119
 U 1 1 66580344
-P 7100 2700
-F 0 "#PWR0119" H 7100 2550 50  0001 C CNN
-F 1 "+3.3V" H 7115 2873 50  0000 C CNN
-F 2 "" H 7100 2700 50  0001 C CNN
-F 3 "" H 7100 2700 50  0001 C CNN
-	1    7100 2700
+P 7300 3150
+F 0 "#PWR0119" H 7300 3000 50  0001 C CNN
+F 1 "+3.3V" H 7315 3323 50  0000 C CNN
+F 2 "" H 7300 3150 50  0001 C CNN
+F 3 "" H 7300 3150 50  0001 C CNN
+	1    7300 3150
 	-1   0    0    -1  
 $EndComp
 Wire Wire Line
@@ -4690,17 +4686,6 @@ Wire Wire Line
 Wire Wire Line
 	8000 1150 8250 1150
 Wire Wire Line
-	7350 2850 7400 2800
-Wire Wire Line
-	7400 2800 7400 2750
-Wire Wire Line
-	7150 2850 7300 2850
-Wire Wire Line
-	7300 2750 7300 2850
-Connection ~ 7300 2850
-Wire Wire Line
-	7300 2850 7350 2850
-Wire Wire Line
 	2300 6350 2400 6350
 Wire Wire Line
 	2300 3950 2400 3950
@@ -5012,10 +4997,7 @@ Wire Wire Line
 Wire Wire Line
 	6750 2750 6750 2850
 Wire Wire Line
-	7050 2850 7100 2800
-Wire Wire Line
-	6900 2850 7050 2850
-Connection ~ 7100 2800
+	6900 2850 6950 2850
 Wire Wire Line
 	6850 2950 7050 2950
 Wire Wire Line
@@ -5124,16 +5106,12 @@ Wire Wire Line
 	5300 2700 5300 2750
 Text GLabel 6800 3400 0    50   Input ~ 0
 wait
-Text GLabel 6800 3550 0    50   Input ~ 0
-finish
 Text GLabel 6800 3700 0    50   Input ~ 0
 home
 Wire Wire Line
 	6800 3700 7450 3700
 Wire Wire Line
 	7450 3700 7500 3750
-Wire Wire Line
-	6800 3550 7350 3550
 Wire Wire Line
 	7350 3550 7400 3600
 Wire Wire Line
@@ -5306,4 +5284,38 @@ Wire Wire Line
 Connection ~ 3050 2000
 Wire Wire Line
 	3050 2000 3050 2050
+$Comp
+L power:+5V #PWR?
+U 1 1 652A63E1
+P 7000 2700
+F 0 "#PWR?" H 7000 2550 50  0001 C CNN
+F 1 "+5V" H 7015 2873 50  0000 C CNN
+F 2 "" H 7000 2700 50  0001 C CNN
+F 3 "" H 7000 2700 50  0001 C CNN
+	1    7000 2700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6950 2850 7000 2800
+Wire Wire Line
+	7000 2800 7000 2700
+Wire Wire Line
+	7000 2800 7250 2800
+Wire Wire Line
+	7250 2800 7300 2750
+Connection ~ 7000 2800
+Wire Wire Line
+	7300 3150 7350 3150
+Wire Wire Line
+	7350 3150 7400 3100
+Wire Wire Line
+	7400 2750 7400 3100
+Wire Wire Line
+	6800 3550 7350 3550
+Text GLabel 6800 3550 0    50   Input ~ 0
+finish
+Wire Wire Line
+	6250 4950 6250 4900
+Wire Wire Line
+	6250 4900 6350 4800
 $EndSCHEMATC

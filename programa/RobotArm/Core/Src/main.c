@@ -459,7 +459,7 @@ void SystemClock_Config(void)
 
 // esto son 40 # y 40 .
 // ###########################################################
-// ........................................................
+// ...............................213.........................
 void consignas(){
 	//	FUNCIÓN TIPO MENÚ PARA VISUALIZAR LAS DISTINTAS CONSIGNAS
 	sprintf(buffer_tx, "Existen 3 modos de comportamiento para el robot\r\n");
@@ -784,7 +784,7 @@ int HomingMotors(uint8_t* hmX, uint8_t* hmY, uint8_t* hmZ) {
 	ActivatedAll(1);
     // Activar todos los motores y configurar velocidades
     for (int i = 0; i < NUM_MOTORS; i++) {
-		motors[i].stepInterval = TIMER_FREQUENCY / (50 * motors[i].microStepping);
+		motors[i].stepInterval = TIMER_FREQUENCY / (10 * motors[i].microStepping);
         motors[i].stopFlag = 1;   // Deshabilitar el movimiento
     }
 

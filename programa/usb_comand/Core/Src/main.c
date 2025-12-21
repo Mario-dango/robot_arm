@@ -110,7 +110,7 @@ int main(void)
       if (buffer[0] == 'A') {
           // Encender el LED
           HAL_GPIO_WritePin(GPIOC, led_Pin, GPIO_PIN_SET);
-      } else if (buffer[0] == 72) {
+      } else if (buffer[0] == 'H') {
           // Apagar el LED
           HAL_GPIO_WritePin(GPIOC, led_Pin, GPIO_PIN_RESET);
       }

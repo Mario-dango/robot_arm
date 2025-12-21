@@ -64,8 +64,8 @@ all: main-build
 main-build: USB-Eje-servo.elf secondary-outputs
 
 # Tool invocations
-USB-Eje-servo.elf USB-Eje-servo.map: $(OBJS) $(USER_OBJS) E:\UNCuyo\Cursadas\Microcontroladores\ y\ Electronica\ de\ potencia\robotArm\robot_arm\programa\USB-Eje-servo\STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "USB-Eje-servo.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"E:\UNCuyo\Cursadas\Microcontroladores y Electronica de potencia\robotArm\robot_arm\programa\USB-Eje-servo\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="USB-Eje-servo.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+USB-Eje-servo.elf USB-Eje-servo.map: $(OBJS) $(USER_OBJS) C:\Users\mprob\Documents\UNCuyo\cursadas\Microcontroladores\ y\ Electronica\ de\ potencia\robotArm\robot_arm\programa\USB-Eje-servo\STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "USB-Eje-servo.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\mprob\Documents\UNCuyo\cursadas\Microcontroladores y Electronica de potencia\robotArm\robot_arm\programa\USB-Eje-servo\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="USB-Eje-servo.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

@@ -70,8 +70,8 @@ all: main-build
 main-build: usb_comand.elf secondary-outputs
 
 # Tool invocations
-usb_comand.elf usb_comand.map: $(OBJS) $(USER_OBJS) E:\UNCuyo\Cursadas\Microcontroladores\ y\ Electronica\ de\ potencia\robotArm\robot_arm\programa\usb_comand\STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "usb_comand.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"E:\UNCuyo\Cursadas\Microcontroladores y Electronica de potencia\robotArm\robot_arm\programa\usb_comand\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="usb_comand.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+usb_comand.elf usb_comand.map: $(OBJS) $(USER_OBJS) C:\Users\mprob\Documents\UNCuyo\cursadas\Microcontroladores\ y\ Electronica\ de\ potencia\robotArm\robot_arm\programa\usb_comand\STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "usb_comand.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\mprob\Documents\UNCuyo\cursadas\Microcontroladores y Electronica de potencia\robotArm\robot_arm\programa\usb_comand\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="usb_comand.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

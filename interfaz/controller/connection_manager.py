@@ -83,6 +83,10 @@ class ConnectionManager:
                 self.worker.data_received.connect(self.process_serial_data)
                 self.worker.start()
 
+                # Handshake: avisa al firmware que se estableció la comunicación.
+                # El STM32 responde y muestra el aviso en su LCD (~2.5 s).
+                self.send_command(":-I")
+
     # --- LÓGICA DE ENVÍO Y CONSOLA ---
     def send_command(self, cmd):
         # Cláusula de guarda de seguridad

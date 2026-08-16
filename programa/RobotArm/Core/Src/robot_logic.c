@@ -27,6 +27,9 @@ uint32_t lastTelemetrySentTime = 0;
 // Asegúrate de tener acceso a la variable de estado
 extern volatile uint8_t robotState;
 
+// Ventana temporal del aviso de comunicación USB en el LCD (definida en main.c)
+extern volatile uint32_t usbGreetingUntil;
+
 // Variables para recordar el estado anterior (static mantiene el valor entre llamadas)
 static int prevX = -99999;
 static int prevY = -99999;

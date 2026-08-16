@@ -69,6 +69,10 @@ extern volatile uint8_t robotState;
 uint8_t robotCalibrated = 0;
 extern uint8_t estadoGarra; // Traída de gripper_driver.c
 
+// Marca de tiempo (HAL_GetTick) hasta la cual el LCD muestra el aviso de
+// "Comunicación USB establecida". La fija el handler del handshake :-I.
+volatile uint32_t usbGreetingUntil = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -293,6 +297,19 @@ void Actualizar_LCD(void) {
             HAL_GPIO_TogglePin(Wait_led_GPIO_Port, Wait_led_Pin);
 
             return; // Salimos. No mostramos coordenadas ni nada más.
+        }
+
+        // ============================================================
+        // PRIORIDAD 2: AVISO DE COMUNICACIÓN USB (handshake :-I)
+        // ============================================================
+        // Mientras la ventana temporal esté vigente, avisamos que la PC
+        // estableció la comunicación. No es bloqueante: al vencer, sigue solo.
+        if (HAL_GetTick() < usbGreetingUntil) {
+            Lcd_Set_Cursor(1,1);
+            Lcd_Send_String("Comunicacion USB");
+            Lcd_Set_Cursor(2,1);
+            Lcd_Send_String("Establecida OK");
+            return;
         }
 
         // Renglón 1: Fijo

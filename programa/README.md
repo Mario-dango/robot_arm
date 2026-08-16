@@ -44,6 +44,47 @@ A continuación se detallan las funciones críticas que dan vida al robot:
 
 ---
 
+## 📡 Protocolo de Comandos (USB CDC · 115200 baud)
+
+Todo comando es ASCII, empieza con `:` y termina en `\n`.
+
+### ⚙️ Configuración / Calibración — prefijo `:-`
+| Comando | Formato | Acción |
+| :--- | :--- | :--- |
+| **Homing** | `:-H` | Busca los 3 fines de carrera y fija el cero de máquina (bloqueante). |
+| **Set Zero** | `:-Z` | Fija la posición actual como (0,0,0) lógico y marca calibrado. |
+| **Apertura garra** | `:-A<grados>` | Configura el ángulo de apertura (0–180). Ej: `:-A120`. |
+| **Cierre garra** | `:-P<grados>` | Configura el ángulo de cierre (0–180). Ej: `:-P090`. |
+| **Enable motores** | `:-E<0\|1>` | `:-E1` habilita torque, `:-E0` lo libera. |
+| **Velocidad global** | `:-V<nnn>` | Porcentaje `010`–`100` (3 dígitos) → pps = %×10. Ej: `:-V050`. |
+| **Stop** | `:-S` | Detiene todos los motores (no engancha el bloqueo de E-STOP). |
+| **Handshake** | `:-I` | Responde `TAILS USB OK` y muestra el aviso de conexión en el LCD (~2.5 s). |
+| **Reset E-STOP** | `:-R` | Solo válido en emergencia: desbloquea a IDLE, reactiva drivers, pide recalibrar. |
+
+### 🎯 Movimiento / Ejecución — prefijo `:#`
+| Comando | Formato | Acción |
+| :--- | :--- | :--- |
+| **Mover** | `:#X<n>Y<n>Z<n>` | Posición absoluta en pasos (cada eje opcional). Usa la velocidad vigente. |
+| **Mover con velocidad** | `:#X<n>Y<n>Z<n>V<nnn>` | Igual, pero con la **velocidad del segmento** embebida (`V010`–`V100`). |
+| **Garra** | `:#A` / `:#C` | Abre / cierra la garra. |
+| **Combinado** | `:#X..Y..Z..V050\|C` | Mover + velocidad de segmento + garra en un solo comando. |
+
+### 🎓 Aprendizaje — prefijo `:+`
+El aprendizaje se gestiona por PC (jog con `:#` + guardado JSON). El firmware **no genera movimiento** en `:+`: solo responde.
+
+### 🛑 Entrada física
+* **Botón de PARO (PB15):** interrupción EXTI → `STATE_ESTOP`. Corta la generación de pasos y bloquea todo. Se recupera con `:-R`.
+
+### 📤 Telemetría (salida automática, no es comando)
+```
+STATUS|X:<x>|Y:<y>|Z:<z>|S:<sx><sy><sz>|C:<0/1>|M:<0/1>
+```
+Posición, fines de carrera, calibrado y en-movimiento. Se envía ante cambios + *heartbeat* cada 2 s.
+
+> **Pendientes conocidos:** el comando de velocidad individual por eje `:-v<...>` aparece en el texto de ayuda (`Robot_Consignas`) pero **no está implementado**, y esa función de ayuda **no está cableada** a ningún comando.
+
+---
+
 ## 🔌 Configuración de Hardware (Pinout)
 
 ### ⚡ Motores Paso a Paso (Drivers A4988)

@@ -24,6 +24,10 @@ void Motor_Init(void);
 // Habilita (1), Deshabilita (0) o Frena (-1) todos los motores
 void ActivatedAll(int habilitar);
 
+// Paro de emergencia unificado (botón físico y comando :-S): frena todo y
+// engancha STATE_ESTOP. Se libera con :-R.
+void Motor_EmergencyStop(void);
+
 // Calcula el intervalo de pasos según la velocidad (llamada en el bucle principal)
 void moveMotors(StepperMotor *motor, int *newPosition, int *velocity);
 

@@ -179,9 +179,10 @@ uint8_t Robot_ModoCalibracion(void){
 	  }
 
       // 7. STOP EMERGENCIA (:-S)
+      // Misma respuesta que el botón físico: frena y engancha el bloqueo E-STOP.
       else if (buffer_rx[2] == 'S'){
-          ActivatedAll(-1); // Función que deshabilita o para todo
-          sprintf(buffer_tx, "STOP CALIBRACION\r\n"); USB_Print(buffer_tx);
+          Motor_EmergencyStop();
+          sprintf(buffer_tx, "E-STOP (SW). Envie :-R para reiniciar.\r\n"); USB_Print(buffer_tx);
           return 0;
       }
 

@@ -63,6 +63,14 @@ void ActivatedAll(int habilitar){
     }
 }
 
+// Paro de emergencia unificado: lo usan TANTO el botón físico (ISR) como el
+// comando :-S de la interfaz, para que ambos tengan idéntica respuesta.
+// Frena todos los motores y engancha el bloqueo STATE_ESTOP (se sale con :-R).
+void Motor_EmergencyStop(void){
+    ActivatedAll(-1);          // Freno de mano: velocidad/intervalo a 0 en todos
+    robotState = STATE_ESTOP;  // Bloqueo: solo :-R lo libera
+}
+
 // Lógica principal de configuración de movimiento
 void moveMotors(StepperMotor *motor, int *newPosition, int *velocity) {
 
@@ -376,19 +384,11 @@ void Motor_Sensor_Triggered(uint16_t GPIO_Pin) {
         // Si prefieres que frene y mantenga posición, comenta esta línea.
         // HAL_GPIO_WritePin(EnableMotors_GPIO_Port, EnableMotors_Pin, GPIO_PIN_SET);
 
-        // 2. MATAR LA GENERACIÓN DE PASOS (CRÍTICO)
-        // Recorremos todos los motores y ponemos sus intervalos a 0.
-        // Esto asegura que la próxima interrupción del TIM2 (50us después) NO haga nada.
-        for (int i = 0; i < NUM_MOTORS; i++) {
-            motors[i].velocity = 0;
-            motors[i].targetVelocity = 0;
-            motors[i].stepInterval = 0; // <--- ESTO ES EL FRENO DE MANO
-            motors[i].stopFlag = 1;
-        }
-
-        // 3. CAMBIAR ESTADO GLOBAL
-        // Para que el main loop y el USB sepan que pasó algo grave.
-        robotState = STATE_ESTOP;
+        // 2. FRENO DE MANO + BLOQUEO (CRÍTICO)
+        // Misma rutina que usa el comando :-S de la interfaz: mata la generación
+        // de pasos (stepInterval=0) y engancha STATE_ESTOP. Así el botón físico y
+        // el de software tienen idéntica respuesta.
+        Motor_EmergencyStop();
 
         // 4. FEEDBACK VISUAL INMEDIATO (Debugging)
         // Encendemos un LED directamente aquí para saber que la ISR entró.

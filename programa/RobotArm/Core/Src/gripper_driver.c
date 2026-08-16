@@ -22,6 +22,11 @@ void Gripper_SetOpenAngle(uint16_t angle);
 void Gripper_Init(void) {
     // Inicia el PWM del servo
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+
+    // Fijar de inmediato una posición definida (cerrada) para que el servo
+    // tenga una señal de retención válida desde el arranque y no derive/abra.
+    Gripper_SetAngle(anguloCierre);
+    estadoGarra = 0; // 0 = Cerrada
 }
 
 void Gripper_SetAngle(uint16_t theta) {

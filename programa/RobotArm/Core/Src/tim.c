@@ -21,7 +21,7 @@
 #include "tim.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "gripper_driver.h" // Para PULSE_MIN (posición cerrada inicial del servo)
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim2;
@@ -149,7 +149,8 @@ void MX_TIM4_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = PULSE_MIN; // Arrancar en posición cerrada (pulso válido) y no en 0,
+                               // que dejaba al servo sin señal definida y lo hacía derivar/abrir.
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)

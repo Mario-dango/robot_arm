@@ -339,6 +339,66 @@ uint8_t Robot_ModoEjecucion(void){
     return 0;
 }
 
+// ============================================================
+// MODO TEST / DIAGNÓSTICO (prefijo :*)
+// Pensado para el panel de pruebas de la interfaz: permite ejercitar el hardware
+// de a una parte por vez (cada LED, cada motor, la garra) sin depender de una
+// rutina ni de la calibración. Útil para verificar conexiones y cableado.
+// ============================================================
+uint8_t Robot_ModoTest(void){
+
+    // --- :*L<C><S>  Prender/apagar un LED ---
+    if (buffer_rx[2] == 'L') {
+        char c = buffer_rx[3];               // H=Home, W=Wait, F=Finish, P=LED de placa
+        GPIO_PinState st = (buffer_rx[4] == '1') ? GPIO_PIN_SET : GPIO_PIN_RESET;
+        const char* nombre = "?";
+
+        switch (c) {
+            case 'H': HAL_GPIO_WritePin(Home_led_GPIO_Port,   Home_led_Pin,   st); nombre = "Home";   break;
+            case 'W': HAL_GPIO_WritePin(Wait_led_GPIO_Port,   Wait_led_Pin,   st); nombre = "Wait";   break;
+            case 'F': HAL_GPIO_WritePin(Finish_led_GPIO_Port, Finish_led_Pin, st); nombre = "Finish"; break;
+            case 'P': HAL_GPIO_WritePin(LedPcb_GPIO_Port,     LedPcb_Pin,     st); nombre = "Placa";  break;
+            default:
+                USB_Print("TEST: LED invalido (use H/W/F/P)\r\n");
+                return 0;
+        }
+        sprintf(buffer_tx, "TEST: LED %s -> %s\r\n", nombre, (buffer_rx[4]=='1') ? "ON" : "OFF");
+        USB_Print(buffer_tx);
+        return 0;
+    }
+
+    // --- :*M<A><+|-><nnn>  Mover un motor de forma relativa (jog de prueba) ---
+    else if (buffer_rx[2] == 'M') {
+        char axis = buffer_rx[3];            // X / Y / Z
+        char sign = buffer_rx[4];            // + / -
+        int steps = atoi(&buffer_rx[5]);     // cantidad de pasos
+        int idx = (axis == 'X') ? 0 : (axis == 'Y') ? 1 : (axis == 'Z') ? 2 : -1;
+
+        if (idx < 0) { USB_Print("TEST: eje invalido (use X/Y/Z)\r\n"); return 0; }
+        if (steps <= 0) { USB_Print("TEST: pasos invalidos (>0)\r\n"); return 0; }
+
+        int delta  = (sign == '-') ? -steps : steps;
+        int target = motors[idx].currentPosition + delta;
+        moveMotors(&motors[idx], &target, &velocidadGlobal);
+
+        sprintf(buffer_tx, "TEST: motor %c %c%d pasos (destino %d)\r\n",
+                axis, (sign == '-') ? '-' : '+', steps, target);
+        USB_Print(buffer_tx);
+        return 0;
+    }
+
+    // --- :*G<A|C>  Garra abrir/cerrar ---
+    else if (buffer_rx[2] == 'G') {
+        if (buffer_rx[3] == 'A')      { Gripper_Open();  USB_Print("TEST: garra ABIERTA\r\n"); }
+        else if (buffer_rx[3] == 'C') { Gripper_Close(); USB_Print("TEST: garra CERRADA\r\n"); }
+        else                          { USB_Print("TEST: garra invalida (use A/C)\r\n"); }
+        return 0;
+    }
+
+    USB_Print("TEST: comando :* no reconocido (L/M/G)\r\n");
+    return 1;
+}
+
 void Robot_ProcesarComando(char *cmd){
 
     // ============================================================
@@ -400,6 +460,11 @@ void Robot_ProcesarComando(char *cmd){
 
             case '+':
                 Robot_ModoAprendizaje();
+                break;
+
+            case '*':
+                // Comandos de test/diagnóstico (no cambian el estado del robot).
+                Robot_ModoTest();
                 break;
 
             default:

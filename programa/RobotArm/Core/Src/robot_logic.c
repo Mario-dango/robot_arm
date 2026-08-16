@@ -222,11 +222,12 @@ uint8_t Robot_ModoEjecucion(void){
 		int curZ = motors[2].currentPosition;
 		// Asumimos que tienes una variable global 'velocidadGlobal' o lees la de un motor
 		int curVel = motors[0].velocity;
-		// Variable global de estado garra (0 o 1) o un char
-		char estadoGarra = (HAL_GPIO_ReadPin(Gripper_pin_GPIO_Port, Gripper_pin_Pin) == GPIO_PIN_SET) ? 'A' : 'C';
+		// Estado real de la garra desde la variable global del driver (1=Abierta, 0=Cerrada).
+		// No se lee el pin: es salida PWM (TIM4_CH4) y su IDR no es fiable.
+		char garra = (estadoGarra == 1) ? 'A' : 'C';
 
 		sprintf(buffer_tx, "Ejecutando -> X:%d Y:%d Z:%d V:%d G:%c\r\n",
-				curX, curY, curZ, curVel, estadoGarra);
+				curX, curY, curZ, curVel, garra);
 		USB_Print(buffer_tx);
     }
 

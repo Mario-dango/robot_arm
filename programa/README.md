@@ -58,8 +58,10 @@ Todo comando es ASCII, empieza con `:` y termina en `\n`.
 | **Enable motores** | `:-E<0\|1>` | `:-E1` habilita torque, `:-E0` lo libera. |
 | **Velocidad global** | `:-V<nnn>` | Porcentaje `010`–`100` (3 dígitos) → pps = %×10. Ej: `:-V050`. |
 | **Stop / E-STOP** | `:-S` | Frena y **engancha el bloqueo de emergencia** (idéntico al botón físico). Se libera con `:-R`. |
-| **Handshake** | `:-I` | Responde `TAILS USB OK` y muestra el aviso de conexión en el LCD (~2.5 s). |
+| **Handshake** | `:-I` | Responde `TAILS USB OK` + estado del LCD (dirección I2C detectada o "NO DETECTADO"). |
 | **Reset E-STOP** | `:-R` | Solo válido en emergencia: desbloquea a IDLE, reactiva drivers, pide recalibrar. |
+| **Ayuda (lista)** | `:-?` | Imprime por consola la lista completa de comandos (CAPA 1). |
+| **Ayuda (ejemplo)** | `:-?<Letra>` | Imprime un ejemplo del comando indicado (CAPA 2). Ej: `:-?V`. |
 
 ### 🎯 Movimiento / Ejecución — prefijo `:#`
 | Comando | Formato | Acción |
@@ -72,23 +74,48 @@ Todo comando es ASCII, empieza con `:` y termina en `\n`.
 ### 🎓 Aprendizaje — prefijo `:+`
 El aprendizaje se gestiona por PC (jog con `:#` + guardado JSON). El firmware **no genera movimiento** en `:+`: solo responde.
 
+### 🧪 Test / Diagnóstico — prefijo `:*`
+Pensado para el **Panel de Test** de la interfaz: ejercita el hardware de a una parte por vez, sin depender de calibración ni rutinas.
+| Comando | Formato | Acción |
+| :--- | :--- | :--- |
+| **LED** | `:*L<C><0\|1>` | Prende/apaga un LED. `C`: `H`=Home, `W`=Wait, `F`=Finish, `P`=LED de placa (PC13). Ej: `:*LH1`. |
+| **Motor** | `:*M<A><±><nnn>` | Mueve un eje de forma **relativa** (pasos). `A`: `X`/`Y`/`Z`. Ej: `:*MX+100`, `:*MZ-050`. |
+| **Garra** | `:*G<A\|C>` | Abre (`A`) o cierra (`C`) la garra. |
+
+> Los comandos `:*` se **rechazan durante el E-STOP** (igual que el resto, salvo `:-R`).
+
 ### 🛑 Entrada física
 * **Botón de PARO (PB15):** interrupción EXTI → `STATE_ESTOP`. Corta la generación de pasos y bloquea todo. Se recupera con `:-R`.
 
 ### 📤 Telemetría (salida automática, no es comando)
 ```
-STATUS|X:<x>|Y:<y>|Z:<z>|S:<sx><sy><sz>|C:<0/1>|M:<0/1>
+STATUS|X:<x>|Y:<y>|Z:<z>|S:<sx><sy><sz>|C:<0/1>|M:<0/1>|E:<0/1>
 ```
-Posición, fines de carrera, calibrado y en-movimiento. Se envía ante cambios + *heartbeat* cada 2 s.
+Posición, fines de carrera, calibrado, en-movimiento y **E-STOP activo** (`E`). Se envía ante cambios + *heartbeat* cada 2 s. El campo `E` permite que la interfaz **frene su secuencia por sí sola** cuando se dispara el paro (botón físico o `:-S`), sin depender de mensajes de texto.
 
-> **Pendientes conocidos:** el comando de velocidad individual por eje `:-v<...>` aparece en el texto de ayuda (`Robot_Consignas`) pero **no está implementado**, y esa función de ayuda **no está cableada** a ningún comando.
+### 🪵 Log de eventos de interrupción
+Al dispararse una interrupción, el firmware imprime su **origen** por consola (fuera de la ISR):
+```
+IRQ|E-STOP: boton fisico (PB15)      IRQ|Fin de carrera: eje X (PB12)
+IRQ|E-STOP: comando :-S (software)   IRQ|Fin de carrera: eje Y/Z (PB13/PB14)
+```
 
 ---
 
+## ✅ Implementado recientemente
+
+* **Estado E-STOP en la telemetría (`|E:0/1`):** la interfaz detecta el bloqueo por sí sola y **frena su secuencia** + resalta *Rearmar*, sin depender de mensajes de texto.
+* **E-STOP por software inmediato:** `:-S` engancha el bloqueo dentro de la ISR de recepción USB → funciona durante ejecución y homing (bloqueante).
+* **Log de origen de interrupción:** se diferencia botón físico / `:-S` / cada fin de carrera.
+* **Errores de homing descriptivos:** se imprime el motivo (qué eje y por qué), no solo el código, y el LED de Home **parpadea** ante fallo.
+* **Ayuda de comandos en 2 capas (`:-?`):** lista + ejemplo puntual por consola.
+* **Comandos de test (`:*`):** LEDs y motores independientes para el Panel de Test.
+* **LCD robusto:** autodetección de dirección I2C y degradado sin congelar el sistema.
+
 ## 🔭 Mejoras Futuras (planificadas)
 
-* **Reflejar errores en el LCD:** los mensajes de error que hoy se muestran **solo en la consola de la interfaz** (respuestas de error del firmware y avisos locales) deberían reproducirse también en la **pantalla LCD** del robot, como línea de estado transitoria —reutilizando el mecanismo no bloqueante del aviso de USB / E-STOP (`usbGreetingUntil`)— para poder diagnosticar sin PC conectada.
-* **Estado del robot en la telemetría:** agregar un campo de estado (ej. `|E:0/1` para E-STOP) a la trama `STATUS|...` para que la interfaz detecte el bloqueo por sí sola y resalte el botón *Rearmar*, en lugar de depender solo de los mensajes de texto.
+* **Reflejar errores en el LCD:** los mensajes de error que hoy se muestran **solo en la consola de la interfaz** deberían reproducirse también en la **pantalla LCD** del robot, como línea de estado transitoria —reutilizando el mecanismo no bloqueante del aviso de USB / E-STOP (`usbGreetingUntil`)— para poder diagnosticar sin PC conectada.
+* **Velocidad individual por eje:** el comando `:-v<...>` aún no está implementado.
 
 ---
 

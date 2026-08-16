@@ -65,6 +65,10 @@ extern uint8_t estadoGarra; // Traída del driver si la definiste global allá, 
 // Asegúrate de tener acceso a la variable global
 extern volatile uint8_t robotState;
 
+// Bandera de fallo de homing (definida en robot_logic.c): si != 0, parpadeamos el
+// LED de Home físico para avisar el error también en la placa.
+extern volatile uint8_t homingFailed;
+
 // 0: Muestra "???", 1: Muestra coordenadas "000"
 uint8_t robotCalibrated = 0;
 extern uint8_t estadoGarra; // Traída de gripper_driver.c
@@ -281,6 +285,13 @@ void Actualizar_LCD(void) {
     // Refrescamos cada 300ms
     if (HAL_GetTick() - lcd_timer > 300) {
         lcd_timer = HAL_GetTick();
+
+        // PARPADEO DE ERROR DE HOMING: si el homing falló, hacemos titilar el LED de
+        // Home (~1.6 Hz). Tiene prioridad de aviso incluso sin PC conectada.
+        if (homingFailed) {
+            HAL_GPIO_TogglePin(Home_led_GPIO_Port, Home_led_Pin);
+        }
+
         Lcd_Clear(); // Limpiamos todo
         // ============================================================
         // PRIORIDAD 1: PANTALLA DE EMERGENCIA

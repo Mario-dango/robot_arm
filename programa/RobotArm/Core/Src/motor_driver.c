@@ -265,18 +265,32 @@ int HomingMotors(uint8_t* hmX, uint8_t* hmY, uint8_t* hmZ) {
     flagStopM_X = 0; flagStopM_Y = 0; flagStopM_Z = 0;
     *hmX = 0; *hmY = 0; *hmZ = 0;
 
+    int r; // resultado de cada eje (0 OK, -1 timeout, -5 sensor trabado, -9 E-STOP)
+
     // 1. HOMING Y (Hombro/Verde) - Levantar primero
-    if (RunHomingSequence(1, SPEED_STD, DIR_TOWARDS_HOME) != 0) return -2;
+    r = RunHomingSequence(1, SPEED_STD, DIR_TOWARDS_HOME);
+    if (r != 0) {
+        if (robotState == STATE_ESTOP) return -9; // No enmascarar el paro como "fallo de eje"
+        return (r == -5) ? -12 : -2;              // -12 sensor trabado Y, -2 timeout Y
+    }
     *hmY = 1;
     HAL_Delay(200);
 
     // 2. HOMING Z (Codo/Lila) - Recoger brazo
-    if (RunHomingSequence(2, SPEED_FAST, DIR_TOWARDS_HOME) != 0) return -3;
+    r = RunHomingSequence(2, SPEED_FAST, DIR_TOWARDS_HOME);
+    if (r != 0) {
+        if (robotState == STATE_ESTOP) return -9;
+        return (r == -5) ? -13 : -3;              // -13 sensor trabado Z, -3 timeout Z
+    }
     *hmZ = 1;
     HAL_Delay(200);
 
     // 3. HOMING X (Base/Rojo) - Centrar giro
-    if (RunHomingSequence(0, SPEED_STD, DIR_TOWARDS_HOME) != 0) return -1;
+    r = RunHomingSequence(0, SPEED_STD, DIR_TOWARDS_HOME);
+    if (r != 0) {
+        if (robotState == STATE_ESTOP) return -9;
+        return (r == -5) ? -11 : -1;              // -11 sensor trabado X, -1 timeout X
+    }
     *hmX = 1;
     HAL_Delay(200);
 

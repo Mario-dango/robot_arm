@@ -46,6 +46,25 @@ int homeStatus_Local = 0; // Para guardar resultado de homing
 int velocidadGlobal = DEFAULT_GLOBAL_VELOCITY; // Default para que el primer jog mueva sin :-V previo
 
 
+// Bandera de fallo de homing: cuando != 0, el bucle principal hace parpadear el
+// LED de Home físico y la interfaz resalta el error. Se limpia al reintentar
+// homing o al calibrar por :-Z. (Definida aquí, usada también en main.c).
+volatile uint8_t homingFailed = 0;
+
+// Devuelve una descripción legible del código de error de homing (no solo el número).
+const char* Robot_HomingErrorStr(int code){
+    switch (code) {
+        case  -1: return "eje X no encontro su fin de carrera (timeout)";
+        case  -2: return "eje Y no encontro su fin de carrera (timeout)";
+        case  -3: return "eje Z no encontro su fin de carrera (timeout)";
+        case -11: return "eje X: el fin de carrera no se libera (revisar sensor/mecanica)";
+        case -12: return "eje Y: el fin de carrera no se libera (revisar sensor/mecanica)";
+        case -13: return "eje Z: el fin de carrera no se libera (revisar sensor/mecanica)";
+        case  -9: return "ABORTADO por PARO DE EMERGENCIA";
+        default : return "error de homing desconocido";
+    }
+}
+
 // --- Implementación ---
 
 void Robot_Consignas(void){
@@ -65,6 +84,7 @@ uint8_t Robot_ModoCalibracion(void){
 	          HAL_GPIO_WritePin(Wait_led_GPIO_Port, Wait_led_Pin, GPIO_PIN_SET);
 
 	          robotCalibrated = 0;
+	          homingFailed = 0; // Reintento: limpiamos cualquier fallo previo (apaga parpadeo)
 
 	          // Imprimimos mensaje inicial
 	          USB_Print("STATUS|Homing...|M:1\r\n"); // M:1 fuerza al PC a saber que se mueve
@@ -79,6 +99,7 @@ uint8_t Robot_ModoCalibracion(void){
 
 	          if (homeStatus_Local == 0){
 	              robotCalibrated = 1;
+	              homingFailed = 0; // Éxito: sin parpadeo de error
 	              // Al terminar, enviamos status final con Home OK (C:1) y Movimiento OFF (M:0)
 	              // Esto actualizará la interfaz automáticamente
 	              Robot_UpdateTelemetry();
@@ -87,7 +108,12 @@ uint8_t Robot_ModoCalibracion(void){
 	              Lcd_Set_Cursor(1,1); Lcd_Send_String("Home Status: OK");
 	              HAL_GPIO_WritePin(Home_led_GPIO_Port, Home_led_Pin, GPIO_PIN_SET);
 	          } else {
-              sprintf(buffer_tx, "Homing Error: %d\r\n", homeStatus_Local); USB_Print(buffer_tx);
+              // Marcamos el fallo (el LED de Home parpadea desde el bucle principal) e
+              // imprimimos DESCRIPCIÓN + código, no solo el número.
+              homingFailed = 1;
+              sprintf(buffer_tx, "Homing Error %d: %s\r\n",
+                      homeStatus_Local, Robot_HomingErrorStr(homeStatus_Local));
+              USB_Print(buffer_tx);
               Lcd_Set_Cursor(1,1); Lcd_Send_String("Home Error!");
           }
 
@@ -108,6 +134,7 @@ uint8_t Robot_ModoCalibracion(void){
           }
 
           robotCalibrated = 1; // Ahora sí sabemos dónde estamos (en el 0)
+          homingFailed = 0;    // Calibrado manual: apaga el parpadeo de error
 
           sprintf(buffer_tx, "Set Zero OK. Posicion actual = 0,0,0\r\n");
           USB_Print(buffer_tx);

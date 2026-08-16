@@ -41,18 +41,21 @@ class LearningManager:
         y = self.app.current_pos['y']
         z = self.app.current_pos['z']
         g = self.app.gripper_state
-        
+        # Velocidad del segmento: por defecto la que se está usando (slider). Editable en la tabla.
+        v = self.view.slider_speed.value()
+
         # 2. Crear una nueva fila al final de la tabla
         row_pos = self.view.table_points.rowCount()
         self.view.table_points.insertRow(row_pos)
-        
-        # 3. Insertar los valores en las celdas (Col 0=X, 1=Y, 2=Z, 3=G)
+
+        # 3. Insertar los valores en las celdas (Col 0=X, 1=Y, 2=Z, 3=G, 4=V%)
         self.view.table_points.setItem(row_pos, 0, QTableWidgetItem(str(x)))
         self.view.table_points.setItem(row_pos, 1, QTableWidgetItem(str(y)))
         self.view.table_points.setItem(row_pos, 2, QTableWidgetItem(str(z)))
         self.view.table_points.setItem(row_pos, 3, QTableWidgetItem(g))
-        
-        self.log("INFO", f"Punto agregado: X{x} Y{y} Z{z} {g}")
+        self.view.table_points.setItem(row_pos, 4, QTableWidgetItem(str(v)))
+
+        self.log("INFO", f"Punto agregado: X{x} Y{y} Z{z} {g} V{v}%")
 
     def delete_point_from_table(self):
         """Elimina la fila que el usuario tenga seleccionada con el mouse"""
@@ -95,12 +98,21 @@ class LearningManager:
         # 1. Empaquetar datos de la tabla visual a una estructura Python
         routine = []
         for i in range(rows):
+            # Velocidad del segmento (%). Se valida/limita a 10..100; si la celda
+            # quedó vacía o inválida, usamos 50 como valor seguro por defecto.
+            try:
+                v = int(self.view.table_points.item(i, 4).text())
+            except (AttributeError, ValueError):
+                v = 50
+            v = max(10, min(100, v))
+
             p = {
                 "type": "MOV",
                 "x": int(self.view.table_points.item(i, 0).text()),
                 "y": int(self.view.table_points.item(i, 1).text()),
                 "z": int(self.view.table_points.item(i, 2).text()),
-                "g": self.view.table_points.item(i, 3).text()
+                "g": self.view.table_points.item(i, 3).text(),
+                "v": v
             }
             routine.append(p)
             

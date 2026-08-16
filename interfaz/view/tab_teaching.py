@@ -145,8 +145,9 @@ class TeachingTab(QWidget):
         
         # Tabla
         self.table_points = QTableWidget()
-        self.table_points.setColumnCount(4)
-        self.table_points.setHorizontalHeaderLabels(["X", "Y", "Z", "G"])
+        self.table_points.setColumnCount(5)
+        # V% = velocidad del segmento (editable). Por defecto toma el slider al capturar.
+        self.table_points.setHorizontalHeaderLabels(["X", "Y", "Z", "G", "V%"])
         # Hacer que las columnas se estiren para ocupar todo el ancho
         self.table_points.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         

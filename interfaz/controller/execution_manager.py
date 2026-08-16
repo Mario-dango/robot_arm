@@ -82,6 +82,7 @@ class ExecutionManager:
         
         for i, step in enumerate(self.loaded_routine):
             linea = f"Paso {i+1}: X{step.get('x')} | Y{step.get('y')} | Z{step.get('z')}"
+            linea += f" | V: {step.get('v', 50)}%"
             if 'g' in step:
                 garra = "CERRAR" if step['g'] == 'C' else "ABRIR"
                 linea += f" | Garra: {garra}"
@@ -146,19 +147,28 @@ class ExecutionManager:
             desc = ""
             
             if step['type'] == 'MOV':
-                # Construimos el comando de posición
-                cmd = f":#X{step['x']}Y{step['y']}Z{step['z']}"
-                desc = f"Moviendo a X{step['x']} Y{step['y']} Z{step['z']}"
-                
+                # Velocidad del segmento (%). Compatibilidad: si el JSON es viejo y
+                # no trae 'v', usamos 50 %. La embebemos en el comando (V0nn) para que
+                # el firmware la aplique de forma atómica, sin un :-V previo aparte.
+                v = step.get('v', 50)
+                try:
+                    v = max(10, min(100, int(v)))
+                except (TypeError, ValueError):
+                    v = 50
+
+                # Construimos el comando de posición + velocidad del segmento
+                cmd = f":#X{step['x']}Y{step['y']}Z{step['z']}V{v:03d}"
+                desc = f"Moviendo a X{step['x']} Y{step['y']} Z{step['z']} @ {v}%"
+
                 # Actualizamos la memoria global para que los LCDs de la UI se enteren
                 self.app.current_pos['x'] = step['x']
                 self.app.current_pos['y'] = step['y']
                 self.app.current_pos['z'] = step['z']
-                
+
                 # Agregamos la instrucción de la garra si existe
                 if 'g' in step:
                     gripper_cmd = "C" if step['g'] == 'C' else "A"
-                    cmd += f"|{gripper_cmd}" 
+                    cmd += f"|{gripper_cmd}"
             
             self.send_cmd(cmd)
             self.view.txt_run_log.append(f"Paso {self.execution_index + 1}: {desc}")

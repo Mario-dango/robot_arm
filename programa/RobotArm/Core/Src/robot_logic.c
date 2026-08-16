@@ -182,22 +182,23 @@ uint8_t Robot_ModoCalibracion(void){
           return 0;
       }
 
+      // 8. HANDSHAKE / IDENTIFICACIÓN (:-I)
+      // Lo envía la interfaz al conectar. Respondemos identificación y mostramos
+      // un aviso temporal en el LCD de que se estableció la comunicación USB.
+      else if (buffer_rx[2] == 'I'){
+          usbGreetingUntil = HAL_GetTick() + 2500; // Aviso en LCD por ~2.5 s (no bloqueante)
+          USB_Print("TAILS USB OK\r\n");
+          return 0;
+      }
+
       return 1; // Comando no reconocido en este modo
 }
 
 uint8_t Robot_ModoAprendizaje(void){
-    // CASO MOVER A POSICION ('D')
-    if (buffer_rx[0] == 'D'){ // Ojo: Ajusta según tu protocolo exacto (en tu main original usabas buffer_data[0][0])
-         char posStr[5];
-         // Ejemplo parsing X
-         CDC_FS_Substring(2, 4, buffer_rx, posStr);
-         int posX = atoi(posStr);
-
-         // Actualizar newPosition en motores
-         int pX = posX; // Casting si es necesario
-         moveMotors(&motors[0], &pX, 0);
-    }
-
+    // El aprendizaje se gestiona por PC: la interfaz mueve cada eje con jog (:#X/Y/Z),
+    // guarda el punto (x,y,z + estado de garra) y arma la trayectoria en JSON.
+    // El firmware NO debe generar movimiento propio en el modo '+': solo responde.
+    USB_Print("Aprendizaje se gestiona por PC (jog :#). '+' sin accion.\r\n");
     return 1;
 }
 uint8_t Robot_ModoEjecucion(void){

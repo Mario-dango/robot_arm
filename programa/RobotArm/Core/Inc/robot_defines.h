@@ -9,6 +9,11 @@
 #define NUM_MOTORS 3
 #define TIMER_FREQUENCY 20000
 
+// Velocidad global por defecto (pps). Se usa hasta que el usuario ajuste
+// el slider (:-V). Debe ser > minVelocity para que el primer movimiento
+// arranque sin depender de que la interfaz mande velocidad antes.
+#define DEFAULT_GLOBAL_VELOCITY 300
+
 // --- CONFIGURACIÓN DE DIRECCIÓN FÍSICA (AGREGADO) ---
 // Define la lógica de tus drivers (ajusta 1 o 0 según si tu robot va al revés)
 #define DIR_TOWARDS_HOME  1  // Dirección lógica para ir HACIA el sensor

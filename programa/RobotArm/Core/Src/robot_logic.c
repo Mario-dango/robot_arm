@@ -40,7 +40,7 @@ uint8_t homeMotor_X = 0;
 uint8_t homeMotor_Y = 0;
 uint8_t homeMotor_Z = 0;
 int homeStatus_Local = 0; // Para guardar resultado de homing
-int velocidadGlobal;
+int velocidadGlobal = DEFAULT_GLOBAL_VELOCITY; // Default para que el primer jog mueva sin :-V previo
 
 
 // --- Implementación ---

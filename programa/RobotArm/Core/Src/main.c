@@ -144,6 +144,11 @@ int main(void)
   motors[1] = (StepperMotor){ StepM_Y_GPIO_Port, StepM_Y_Pin, DirM_Y_GPIO_Port, DirM_Y_Pin, 0, 0, 1, 0, 0, 0, 0, 1 };
   motors[2] = (StepperMotor){ StepM_Z_GPIO_Port, StepM_Z_Pin, DirM_Z_GPIO_Port, DirM_Z_Pin, 0, 0, 1, 0, 0, 0, 0, 1 };
 
+  // Completa los campos de rampa (minVelocity, accelRate, targetVelocity) que el
+  // initializer de arriba deja en 0. Debe ir DESPUÉS de asignar los structs
+  // (no toca puertos/pines) y ANTES de arrancar TIM2.
+  Motor_Init();
+
   // 5. TIMERS
   HAL_TIM_Base_Start_IT(&htim2); // Timer de Pasos (Driver Motor)
   HAL_TIM_Base_Start_IT(&htim3); // Timer auxiliar segundos

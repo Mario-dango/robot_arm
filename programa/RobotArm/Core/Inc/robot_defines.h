@@ -36,6 +36,20 @@
 // Agrega esta variable externa para que todos la vean
 extern volatile uint8_t robotState;
 
+// --- FUENTES DE INTERRUPCIÓN / EVENTO (para diferenciar en el log) ---
+// Se setean en la ISR (o en la recepción USB para el E-STOP por software) y las
+// imprime el bucle principal vía Robot_ReportInterrupts(). Así se puede saber por
+// dónde entró la parada: botón físico, comando :-S, o qué fin de carrera tocó.
+#define IRQ_SRC_NONE       0
+#define IRQ_SRC_ESTOP_BTN  1  // Botón físico de PARO (EXTI PB15)
+#define IRQ_SRC_ESTOP_SW   2  // Comando :-S desde la interfaz (E-STOP por software)
+#define IRQ_SRC_LIMIT_X    3  // Fin de carrera X (EXTI PB12)
+#define IRQ_SRC_LIMIT_Y    4  // Fin de carrera Y (EXTI PB13)
+#define IRQ_SRC_LIMIT_Z    5  // Fin de carrera Z (EXTI PB14)
+
+// Último evento de interrupción pendiente de reportar (definida en motor_driver.c).
+extern volatile uint8_t lastIrqSource;
+
 // Estructura del Motor
 typedef struct {
     GPIO_TypeDef *stepPort;     // Puerto GPIO para el pin de paso (step)

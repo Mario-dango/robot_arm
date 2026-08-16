@@ -22,7 +22,7 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
-
+#include "motor_driver.h"   // Motor_EmergencyStop(), lastIrqSource, IRQ_SRC_*
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -272,6 +272,24 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 	  memcpy(buffer_rx, Buf, len);
 
 	  memset (Buf, '\0', len);
+
+	  // --- PARO DE EMERGENCIA POR SOFTWARE (:-S) CON PRIORIDAD ---
+	  // Lo enganchamos AQUÍ, en la propia interrupción de recepción USB, en vez de
+	  // esperar al bucle principal. Motivos:
+	  //   1) Homing: el main queda BLOQUEADO dentro de HomingMotors; si esperáramos
+	  //      a procesar el comando en el main, el :-S nunca se atendería hasta que
+	  //      el homing terminara. Enganchando el STATE_ESTOP acá, los while() del
+	  //      homing (que chequean robotState) abortan de inmediato.
+	  //   2) Ejecución: evita la carrera con 'flagUsb' (si llegaba un :# y un :-S
+	  //      casi juntos, el main podía bajar la bandera y "saltarse" el :-S, por lo
+	  //      que la trayectoria se frenaba un instante y seguía). Aquí queda latcheado.
+	  // Motor_EmergencyStop() sólo escribe variables volátiles (sin bloqueos), es
+	  // seguro llamarla desde ISR.
+	  if (buffer_rx[0] == ':' && buffer_rx[1] == '-' && buffer_rx[2] == 'S') {
+	      Motor_EmergencyStop();
+	      lastIrqSource = IRQ_SRC_ESTOP_SW; // Para diferenciar en el log
+	  }
+
 	  flagUsb = 1;
 	  //	Se termina levantando la bandera de recepción para el main
 	  return (USBD_OK);

@@ -37,6 +37,7 @@ static int prevZ = -99999;
 static uint8_t prevSensors = 0xFF; // Valor imposible para forzar primer envío
 static uint8_t prevCalib = 0xFF;
 static uint8_t prevMoving = 0xFF;
+static uint8_t prevEstop = 0xFF;
 
 // Variables locales de ayuda
 uint8_t homeMotor_X = 0;
@@ -424,6 +425,12 @@ void Robot_ProcesarComando(char *cmd){
             Lcd_Clear();
             Lcd_Set_Cursor(1,1); Lcd_Send_String("System Unlocked");
         }
+        // El propio :-S que disparó la parada llega hasta acá (ya lo enganchó la
+        // ISR de USB). No es un error: confirmamos el E-STOP por software.
+        else if (cmd[0] == ':' && cmd[1] == '-' && cmd[2] == 'S') {
+            sprintf(buffer_tx, "E-STOP (SW) enganchado. Envie :-R para reiniciar.\r\n");
+            USB_Print(buffer_tx);
+        }
         else {
             // CUALQUIER OTRO COMANDO SE RECHAZA
             sprintf(buffer_tx, "ERROR: E-STOP ACTIVO. ENVIE ':-R' PARA REINICIAR.\r\n");
@@ -500,9 +507,16 @@ void Robot_UpdateTelemetry(void) {
     // Estado calibración
     uint8_t currCalib = robotCalibrated;
 
+    // Estado de PARO DE EMERGENCIA (para que la interfaz frene su secuencia sola,
+    // sin depender de mensajes de texto: la dispara el botón físico o el :-S).
+    uint8_t currEstop = (robotState == STATE_ESTOP) ? 1 : 0;
+
     // 2. GESTIÓN DE LEDS FÍSICOS (En la placa)
     // ---------------------------------------------------------
-    HAL_GPIO_WritePin(Home_led_GPIO_Port, Home_led_Pin, currCalib ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    // Si hubo fallo de homing NO forzamos el LED de Home acá: lo hace parpadear el
+    // bucle principal (Actualizar_LCD). Así el usuario ve el error también en la placa.
+    if (!homingFailed)
+        HAL_GPIO_WritePin(Home_led_GPIO_Port, Home_led_Pin, currCalib ? GPIO_PIN_SET : GPIO_PIN_RESET);
     HAL_GPIO_WritePin(Wait_led_GPIO_Port, Wait_led_Pin, currMoving ? GPIO_PIN_SET : GPIO_PIN_RESET);
     // (Opcional) Finish Led podría ser parpadeo, aquí lo dejamos apagado por ahora
     // HAL_GPIO_WritePin(Finish_led_GPIO_Port, Finish_led_Pin, GPIO_PIN_RESET);
@@ -518,19 +532,21 @@ void Robot_UpdateTelemetry(void) {
     if (currSensors != prevSensors) hasChanged = 1;
     if (currCalib != prevCalib) hasChanged = 1;
     if (currMoving != prevMoving) hasChanged = 1;
+    if (currEstop != prevEstop) hasChanged = 1;
 
     // Condición de "Heartbeat": Si pasaron 2 segundos (2000ms) sin enviar, forzar envío
     uint8_t forceHeartbeat = (HAL_GetTick() - lastTelemetrySentTime > 2000);
 
     if (hasChanged || forceHeartbeat) {
-        char msg[100];
+        char msg[110];
         // AGREGAMOS MÁS DATOS A LA TRAMA:
         // C: Calibrado (0/1)
         // M: Moviendo (0/1)
-        sprintf(msg, "STATUS|X:%d|Y:%d|Z:%d|S:%d%d%d|C:%d|M:%d\r\n",
+        // E: Paro de emergencia activo (0/1) -> la interfaz frena su secuencia sola
+        sprintf(msg, "STATUS|X:%d|Y:%d|Z:%d|S:%d%d%d|C:%d|M:%d|E:%d\r\n",
                 currX, currY, currZ,
                 sX, sY, sZ,
-                currCalib, currMoving);
+                currCalib, currMoving, currEstop);
 
         USB_Print(msg);
 
@@ -539,7 +555,40 @@ void Robot_UpdateTelemetry(void) {
         prevSensors = currSensors;
         prevCalib = currCalib;
         prevMoving = currMoving;
+        prevEstop = currEstop;
 
         lastTelemetrySentTime = HAL_GetTick();
+    }
+}
+
+// Reporta por USB el último evento de interrupción, diferenciando su ORIGEN.
+// Se llama desde el bucle principal (NO desde la ISR) para no bloquear dentro de
+// una interrupción. Deja el log claro de por dónde entró la parada o el tope:
+//   - Botón físico de PARO (EXTI PB15)
+//   - Comando :-S por software (E-STOP desde la interfaz)
+//   - Fin de carrera X / Y / Z (indicando qué eje tocó su sensor)
+void Robot_ReportInterrupts(void) {
+    uint8_t src = lastIrqSource;      // Copia local (la ISR podría reescribirla)
+    if (src == IRQ_SRC_NONE) return;
+    lastIrqSource = IRQ_SRC_NONE;     // Consumimos el evento
+
+    switch (src) {
+        case IRQ_SRC_ESTOP_BTN:
+            USB_Print("IRQ|E-STOP: boton fisico (PB15)\r\n");
+            break;
+        case IRQ_SRC_ESTOP_SW:
+            USB_Print("IRQ|E-STOP: comando :-S (software)\r\n");
+            break;
+        case IRQ_SRC_LIMIT_X:
+            USB_Print("IRQ|Fin de carrera: eje X (PB12)\r\n");
+            break;
+        case IRQ_SRC_LIMIT_Y:
+            USB_Print("IRQ|Fin de carrera: eje Y (PB13)\r\n");
+            break;
+        case IRQ_SRC_LIMIT_Z:
+            USB_Print("IRQ|Fin de carrera: eje Z (PB14)\r\n");
+            break;
+        default:
+            break;
     }
 }

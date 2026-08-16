@@ -19,6 +19,11 @@ volatile uint8_t flagStopM_Z = 0;
 // Variable Global de Estado
 volatile uint8_t robotState = STATE_IDLE;
 
+// Último evento de interrupción, para que el bucle principal lo reporte por USB.
+// NO imprimimos dentro de la ISR (USB_Print puede bloquear ~10ms): solo dejamos
+// la marca y Robot_ReportInterrupts() la vacía fuera del contexto de interrupción.
+volatile uint8_t lastIrqSource = IRQ_SRC_NONE;
+
 // Configuración por defecto de rampas (Ajustable)
 #define DEFAULT_MIN_VEL  50   // 50 Hz de arranque (evita resonancia baja)
 #define DEFAULT_ACCEL    5    // Aumentar 5 Hz por cada paso dado
@@ -407,6 +412,9 @@ void Motor_Sensor_Triggered(uint16_t GPIO_Pin) {
     // ============================================================
     if (GPIO_Pin == STOP_btn_Pin) {
 
+        // 0. MARCA DE ORIGEN (para el log): fue el botón físico.
+        lastIrqSource = IRQ_SRC_ESTOP_BTN;
+
         // 1. DESHABILITAR DRIVERS FÍSICAMENTE (OPCIONAL)
         // Si pones el pin ENABLE en alto, el motor pierde torque inmediatamente.
         // Útil si quieres que el robot "se suelte".
@@ -435,14 +443,17 @@ void Motor_Sensor_Triggered(uint16_t GPIO_Pin) {
         if (GPIO_Pin == StopM_X_Pin) {
             motorAfectado = &motors[0];
             flagGlobal = &flagStopM_X;
+            lastIrqSource = IRQ_SRC_LIMIT_X;
         }
         else if (GPIO_Pin == StopM_Y_Pin) {
             motorAfectado = &motors[1];
             flagGlobal = &flagStopM_Y;
+            lastIrqSource = IRQ_SRC_LIMIT_Y;
         }
         else if (GPIO_Pin == StopM_Z_Pin) {
             motorAfectado = &motors[2];
             flagGlobal = &flagStopM_Z;
+            lastIrqSource = IRQ_SRC_LIMIT_Z;
         }
 
         if (motorAfectado != NULL) {

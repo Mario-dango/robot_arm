@@ -202,6 +202,10 @@ int main(void)
 		  }
 	  }
 
+	  // Reporta por USB el origen del último evento de interrupción (botón físico,
+	  // :-S por software, o qué fin de carrera). Fuera de la ISR para no bloquear.
+	  Robot_ReportInterrupts();
+
 	  Robot_UpdateTelemetry();
     /* USER CODE END WHILE */
 

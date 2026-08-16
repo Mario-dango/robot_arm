@@ -51,20 +51,47 @@ El cerebro de la placa es un microcontrolador **STM32F103C8T6 (Bluepill)**. El c
 ### Consideraciones de Diseño:
 * **Planos de Masa (GND Copper Pours):** Se implementaron polígonos de masa para disipar calor y aislar el ruido de la etapa de conmutación de los motores.
 * **Trazas de Potencia:** Dimensionamiento adecuado de pistas para las líneas de VCC y VMOT de los drivers A4988.
+* **Motores PaP bipolares:** Conectores SIL para conectar los motores PaP a los drivers de la placa (drivers A4988) siendo:
+   -  J1 -> grado X.
+   -  J3 -> grado Y.
+   -  J4 -> grado Z.
+
 ![Layout 2D de la PCB](resources/lay02.png)
+
+### Indicadores LEDs y salidas de tensión:
+* **Alimentaciones:** Posee dos salidas de tensión del regulador lineal, la de la izquierda entrega 5v continuos y de la derecha entrega 3.3v.
+* **Indicadores LEDs:** En la placa posee 3 indicadores LEDs que visualizan los estados de Home, Wait y Finish.
+![Layout 2D de la PCB](resources/lay03.png)
+
+### Alimentación:
+* **Entradas de la fuente:** Tiene una bornera señalizada donde ingresan los 12v para la alimentación de los motores (Vmot).
+* **Reguladores Lineales:**  El mismo bus de tensión Vmot (12v de alimentación) se usa para bajar su tensión a 5v y 3.3v (usando los LM7805 y LM317 respectivamente). Una mejora significativa que se le puede hacer al proyecto es introducir unos step down para ganar en cuanto a eficiencia energetica
+![Layout 2D de la PCB](resources/lay04.png)
+
+
+### Microcontrolador (STM32F103C8T6):
+* **Microcontrolador:** Posee cómo núcleo de procesamiento de las señales y de la comunicación por USB.
+* **Pulsadores:** Los botones que poseen en la placa son para parada de emergencia con posibilidad a salida por el conector SIL (J18), además se tiene el botón de reset del algoritmo.
+![Layout 2D de la PCB](resources/lay05.png)
 
 ---
 
 ## 📦 Modelo 3D
 
-*(Aquí puedes colocar un render 3D exportado directamente desde el visor 3D de KiCad)*
-![Modelo 3D de la placa](resources/model.png)
+Modelo 3D de la PCB del brazo robótico T.A.I.L.S.
 
+![Modelo 3D de la placa](resources/model.png)
+Vista n°1. Superior de la PCB.
 ![Modelo 3D de la placa](resources/mod01.png)
+Vista n°2.
 ![Modelo 3D de la placa](resources/mod02.png)
+Vista n°3.
 ![Modelo 3D de la placa](resources/mod03.png)
+Vista n°4.
 ![Modelo 3D de la placa](resources/mod04.png)
+Vista n°5. Inferior del LayOut.
 ![Modelo 3D de la placa](resources/mod05.png)
+Vista n°6. Renderizado superior.
 
 ---
 

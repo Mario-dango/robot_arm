@@ -205,11 +205,18 @@ uint8_t Robot_ModoAprendizaje(void){
     return 1;
 }
 uint8_t Robot_ModoEjecucion(void){
-    // Formato: :#X200|Y200|C
+    // Formato: :#X200Y200Z050V050|C  (V = velocidad del segmento en %, opcional)
 
     int x = BuscarValor('X', buffer_rx);
     int y = BuscarValor('Y', buffer_rx);
     int z = BuscarValor('Z', buffer_rx);
+
+    // Velocidad del segmento embebida (opcional). Si viene V entre 10 y 100,
+    // fija la velocidad global de este movimiento (misma escala que :-V => %*10).
+    int vpct = BuscarValor('V', buffer_rx);
+    if (vpct >= 10 && vpct <= 100) {
+        velocidadGlobal = vpct * 10;
+    }
 
     // Validamos que al menos se haya enviado alguna coordenada
     if (x >= 0 || y >= 0 || z >= 0) {

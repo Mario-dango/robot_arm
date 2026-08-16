@@ -183,7 +183,11 @@ static int RunHomingSequence(int motorIndex, int velocity, int direction) {
 
         // Esperar hasta que el sensor SE SUELTE (deje de estar presionado)
         contSeconds = 0;
-        while (IsSensorPressed(motorIndex) && contSeconds < 5); // Timeout corto de seguridad
+        while (IsSensorPressed(motorIndex) && contSeconds < 5 // Timeout corto de seguridad
+               && robotState != STATE_ESTOP);
+
+        // Abortar si entró un E-STOP durante la espera
+        if (robotState == STATE_ESTOP) { motors[motorIndex].stopFlag = 1; return -9; }
 
         // Unos pasitos extra para asegurar despeje
         HAL_Delay(500);
@@ -213,10 +217,12 @@ static int RunHomingSequence(int motorIndex, int velocity, int direction) {
     // Esperar a que el sensor se active (Flag ISR o lectura directa)
     contSeconds = 0;
     // Usamos lectura directa también por seguridad redundante
-    while (!IsSensorPressed(motorIndex) && (contSeconds < TIMEOUT_SEC));
+    while (!IsSensorPressed(motorIndex) && (contSeconds < TIMEOUT_SEC)
+           && robotState != STATE_ESTOP);
 
     motors[motorIndex].stopFlag = 1; // STOP
 
+    if (robotState == STATE_ESTOP) return -9; // Abortado por parada de emergencia
     if (!IsSensorPressed(motorIndex)) return -1; // Falló por Timeout
     return 0; // Éxito
 }
@@ -267,10 +273,16 @@ int HomingMotors(uint8_t* hmX, uint8_t* hmY, uint8_t* hmZ) {
         motors[i].stepInterval = TIMER_FREQUENCY / motors[i].velocity;
     }
 
-    // Esperar a que todos terminen el retroceso
-    while(motors[0].currentPosition < motors[0].newPosition ||
-          motors[1].currentPosition < motors[1].newPosition ||
-          motors[2].currentPosition < motors[2].newPosition);
+    // Esperar a que todos terminen el retroceso (o abortar si hay E-STOP)
+    while((motors[0].currentPosition < motors[0].newPosition ||
+           motors[1].currentPosition < motors[1].newPosition ||
+           motors[2].currentPosition < motors[2].newPosition)
+          && robotState != STATE_ESTOP);
+
+    if (robotState == STATE_ESTOP) {
+        for (int i = 0; i < NUM_MOTORS; i++) { motors[i].stopFlag = 1; motors[i].stepInterval = 0; }
+        return -9; // Abortado por parada de emergencia
+    }
 
     // 5. RESTAURACIÓN FINAL Y RESET DE HARDWARE
     flagStopM_X = 0; flagStopM_Y = 0; flagStopM_Z = 0;

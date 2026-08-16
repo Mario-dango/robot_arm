@@ -57,7 +57,7 @@ Todo comando es ASCII, empieza con `:` y termina en `\n`.
 | **Cierre garra** | `:-P<grados>` | Configura el ángulo de cierre (0–180). Ej: `:-P090`. |
 | **Enable motores** | `:-E<0\|1>` | `:-E1` habilita torque, `:-E0` lo libera. |
 | **Velocidad global** | `:-V<nnn>` | Porcentaje `010`–`100` (3 dígitos) → pps = %×10. Ej: `:-V050`. |
-| **Stop** | `:-S` | Detiene todos los motores (no engancha el bloqueo de E-STOP). |
+| **Stop / E-STOP** | `:-S` | Frena y **engancha el bloqueo de emergencia** (idéntico al botón físico). Se libera con `:-R`. |
 | **Handshake** | `:-I` | Responde `TAILS USB OK` y muestra el aviso de conexión en el LCD (~2.5 s). |
 | **Reset E-STOP** | `:-R` | Solo válido en emergencia: desbloquea a IDLE, reactiva drivers, pide recalibrar. |
 

@@ -85,6 +85,13 @@ Posición, fines de carrera, calibrado y en-movimiento. Se envía ante cambios +
 
 ---
 
+## 🔭 Mejoras Futuras (planificadas)
+
+* **Reflejar errores en el LCD:** los mensajes de error que hoy se muestran **solo en la consola de la interfaz** (respuestas de error del firmware y avisos locales) deberían reproducirse también en la **pantalla LCD** del robot, como línea de estado transitoria —reutilizando el mecanismo no bloqueante del aviso de USB / E-STOP (`usbGreetingUntil`)— para poder diagnosticar sin PC conectada.
+* **Estado del robot en la telemetría:** agregar un campo de estado (ej. `|E:0/1` para E-STOP) a la trama `STATUS|...` para que la interfaz detecte el bloqueo por sí sola y resalte el botón *Rearmar*, en lugar de depender solo de los mensajes de texto.
+
+---
+
 ## 🔌 Configuración de Hardware (Pinout)
 
 ### ⚡ Motores Paso a Paso (Drivers A4988)

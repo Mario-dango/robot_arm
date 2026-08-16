@@ -1,8 +1,27 @@
 #include "i2c.h"
 #include "lcd_i2c.h"
 
+// Dirección I2C efectiva del backpack (se autodetecta en Lcd_Init). Arranca con
+// la configurada por defecto; si el módulo está en otra, la corregimos al vuelo.
+static uint8_t lcd_addr = LCD_ADDRESS;
+
+// 1 = el LCD respondió el ACK en el arranque; 0 = no está / no responde.
+// Si es 0, TODAS las escrituras se saltan: así un LCD ausente o mal cableado NO
+// congela el bucle principal (antes cada transmisión sin ACK bloqueaba 100ms, y
+// con varias por refresco el sistema entero se ponía lentísimo o "colgado").
+static uint8_t lcd_present = 0;
+
+// Timeout corto por transmisión: si el LCD no engancha, degrada rápido en vez de
+// frenar el firmware 100ms por byte.
+#define LCD_I2C_TIMEOUT 20
+
+// Direcciones típicas (formato 8-bit HAL) de los backpacks I2C para HD44780:
+//   0x4E = PCF8574  en 0x27   |   0x7E = PCF8574A en 0x3F
+static const uint8_t LCD_CANDIDATE_ADDR[] = { LCD_ADDRESS, 0x4E, 0x7E };
+
 void Lcd_Send_Cmd(char cmd)
 {
+	if (!lcd_present) return; // LCD ausente: no bloquear el sistema
 	char data_u, data_l;
 	uint8_t data_t[4];
 	data_u = (cmd & 0xF0);
@@ -11,11 +30,12 @@ void Lcd_Send_Cmd(char cmd)
 	data_t[1] = data_u|0x08;
 	data_t[2] = data_l|0x0C;
 	data_t[3] = data_l|0x08;
-	HAL_I2C_Master_Transmit(&hi2c1, LCD_ADDRESS,(uint8_t*) data_t, 4, 100);
+	HAL_I2C_Master_Transmit(&hi2c1, lcd_addr,(uint8_t*) data_t, 4, LCD_I2C_TIMEOUT);
 }
 
 void Lcd_Send_Char(char data)
 {
+	if (!lcd_present) return; // LCD ausente: no bloquear el sistema
 	char data_u, data_l;
 	uint8_t data_t[4];
 	data_u = (data & 0xF0);
@@ -24,11 +44,34 @@ void Lcd_Send_Char(char data)
 	data_t[1] = data_u|0x09;
 	data_t[2] = data_l|0x0D;
 	data_t[3] = data_l|0x09;
-	HAL_I2C_Master_Transmit(&hi2c1, LCD_ADDRESS,(uint8_t*) data_t, 4, 100);
+	HAL_I2C_Master_Transmit(&hi2c1, lcd_addr,(uint8_t*) data_t, 4, LCD_I2C_TIMEOUT);
 }
+
+// Sondea el bus I2C buscando el backpack del LCD. Prueba la dirección configurada
+// y las dos típicas. Deja lcd_addr/lcd_present listos. Devuelve 1 si lo encontró.
+uint8_t Lcd_Probe(void)
+{
+    for (uint8_t i = 0; i < sizeof(LCD_CANDIDATE_ADDR); i++) {
+        if (HAL_I2C_IsDeviceReady(&hi2c1, LCD_CANDIDATE_ADDR[i], 2, 20) == HAL_OK) {
+            lcd_addr = LCD_CANDIDATE_ADDR[i];
+            lcd_present = 1;
+            return 1;
+        }
+    }
+    lcd_present = 0; // No respondió nadie: seguimos sin LCD, sin colgarnos.
+    return 0;
+}
+
+uint8_t Lcd_IsPresent(void)  { return lcd_present; }
+uint8_t Lcd_GetAddress(void) { return lcd_addr; }
 
 void Lcd_Init(void)
 {
+    // 0. AUTODETECCIÓN: ¿está el backpack en el bus? ¿en qué dirección?
+    //    Una dirección I2C equivocada es la causa #1 de "el LCD no responde".
+    Lcd_Probe();
+    if (!lcd_present) return; // Sin LCD: no intentamos inicializar (no bloquea)
+
     // 1. Espera inicial de seguridad (el datasheet pide >40ms tras VCC sube a 2.7V)
     HAL_Delay(50);
 

@@ -267,6 +267,14 @@ uint8_t Robot_ModoCalibracion(void){
       else if (buffer_rx[2] == 'I'){
           usbGreetingUntil = HAL_GetTick() + 2500; // Aviso en LCD por ~2.5 s (no bloqueante)
           USB_Print("TAILS USB OK\r\n");
+          // Diagnóstico del LCD: informamos si se detectó y en qué dirección I2C.
+          // Ayuda a saber si "el LCD no responde" es dirección equivocada o cableado.
+          if (Lcd_IsPresent()) {
+              sprintf(buffer_tx, "LCD OK (I2C 0x%02X)\r\n", Lcd_GetAddress());
+          } else {
+              sprintf(buffer_tx, "LCD NO DETECTADO (revisar cableado/contraste)\r\n");
+          }
+          USB_Print(buffer_tx);
           return 0;
       }
 

@@ -6,6 +6,9 @@
 //#define LCD_ADDRESS 0x27
 
 void Lcd_Init(void);
+uint8_t Lcd_Probe(void);       // Sondea el bus y autodetecta la dirección. 1 = encontrado.
+uint8_t Lcd_IsPresent(void);   // 1 = el LCD respondió el ACK en el arranque.
+uint8_t Lcd_GetAddress(void);  // Dirección I2C efectiva (formato 8-bit).
 void Lcd_Send_Cmd(char cmd);
 void Lcd_Send_Char(char data);
 void Lcd_Send_String(char *str);

@@ -109,6 +109,7 @@ class View(QMainWindow):
         self.lbl_status_wait = self.panel_left.lbl_status_wait
         self.lbl_status_finish = self.panel_left.lbl_status_finish
         self.btn_estop = self.panel_left.btn_estop
+        self.btn_rearm = self.panel_left.btn_rearm
 
         # Consola (Renombramos los botones internos para que coincidan con el Controlador)
         self.txt_console = self.console_container.txt_console

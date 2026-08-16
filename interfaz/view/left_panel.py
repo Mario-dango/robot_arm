@@ -112,10 +112,16 @@ class LeftPanel(QGroupBox):
         # --- SECCIÓN E: STOP EMERGENCIA ---
         self.btn_estop = QPushButton("STOP EMERGENCIA")
         # Propiedad especial para que se ponga rojo (ver style.css)
-        self.btn_estop.setProperty("class", "stop_button") 
+        self.btn_estop.setProperty("class", "stop_button")
         self.btn_estop.setMinimumHeight(64)
-        
+
         self.layout.addWidget(self.btn_estop)
-        
+
+        # --- SECCIÓN F: REARMAR (salir del bloqueo E-STOP con :-R) ---
+        self.btn_rearm = QPushButton("Rearmar (:-R)")
+        self.btn_rearm.setToolTip("Libera el bloqueo de parada de emergencia (envía :-R).")
+        self.btn_rearm.setMinimumHeight(40)
+        self.layout.addWidget(self.btn_rearm)
+
         # Espaciador final para empujar todo hacia arriba
         self.layout.addStretch()

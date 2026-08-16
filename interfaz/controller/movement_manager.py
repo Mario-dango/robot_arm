@@ -52,8 +52,9 @@ class MovementManager:
         self.view.slider_speed.valueChanged.connect(self.handle_speed_change)
         self.view.slider_speed.sliderReleased.connect(self.send_speed_command)
 
-        # --- STOP EMERGENCIA ---
+        # --- STOP EMERGENCIA / REARMAR ---
         self.view.btn_estop.clicked.connect(self.emergency_stop)
+        self.view.btn_rearm.clicked.connect(self.rearm)
 
     # --- FUNCIONES HELPER ---
     def send_cmd(self, cmd):
@@ -140,6 +141,14 @@ class MovementManager:
             self.log("ALERTA", "STOP ENVIADO")
         else:
             self.log("ERROR", "Robot no conectado (STOP fallido).")
+
+    def rearm(self):
+        """Libera el bloqueo de parada de emergencia (envía :-R)"""
+        if self.model.is_connected():
+            self.send_cmd(":-R")
+            self.log("INFO", "REARMADO (:-R). Recalibrar antes de operar.")
+        else:
+            self.log("ERROR", "Robot no conectado (rearme fallido).")
 
     # --- VELOCIDAD ---
     def handle_speed_change(self, value):

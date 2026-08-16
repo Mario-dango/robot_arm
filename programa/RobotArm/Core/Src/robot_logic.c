@@ -67,12 +67,49 @@ const char* Robot_HomingErrorStr(int code){
 
 // --- Implementación ---
 
+// CAPA 1 de la ayuda: lista TODOS los comandos que interpreta el STM32.
+// Para un ejemplo puntual, pedir la CAPA 2 con :-?<Letra> (ej: :-?V).
 void Robot_Consignas(void){
-    // Usamos la función segura USB_Print
-    sprintf(buffer_tx, "Existen 3 modos de comportamiento para el robot\r\n"); USB_Print(buffer_tx);
-    sprintf(buffer_tx, "CALIBRACION (-), APRENDIZAJE (+) y EJECUCION (#)\r\n"); USB_Print(buffer_tx);
-    sprintf(buffer_tx, "Comandos: :-H (Home), :-V045 (Vel Global), :-E1 (Enable)\r\n"); USB_Print(buffer_tx);
-    sprintf(buffer_tx, "          :-vX023Y100Z078 (Vel individual), :-S (Stop)\r\n"); USB_Print(buffer_tx);
+    USB_Print("=== COMANDOS T.A.I.L.S. (STM32) ===\r\n");
+    USB_Print("Todo comando empieza con ':' y termina en Enter.\r\n");
+    USB_Print("-- Calibracion / Config (:-) --\r\n");
+    USB_Print("  :-H         Homing (busca los 3 fines de carrera)\r\n");
+    USB_Print("  :-Z         Set Zero: fija (0,0,0) en la posicion actual\r\n");
+    USB_Print("  :-A<grados> Angulo de apertura de garra (ej :-A120)\r\n");
+    USB_Print("  :-P<grados> Angulo de cierre de garra (ej :-P030)\r\n");
+    USB_Print("  :-E<0|1>    Enable motores (1=torque ON, 0=OFF)\r\n");
+    USB_Print("  :-V<nnn>    Velocidad global % 010..100 (ej :-V050)\r\n");
+    USB_Print("  :-S         PARO de emergencia (se libera con :-R)\r\n");
+    USB_Print("  :-R         Rearmar tras E-STOP (pide recalibrar)\r\n");
+    USB_Print("  :-I         Handshake (responde TAILS USB OK)\r\n");
+    USB_Print("-- Movimiento (:#) --\r\n");
+    USB_Print("  :#X..Y..Z..[V..][|A|C]  Mover a posicion absoluta (pasos)\r\n");
+    USB_Print("-- Test / Diagnostico (:*) --\r\n");
+    USB_Print("  :*L<H|W|F|P><0|1>  Prender/apagar un LED\r\n");
+    USB_Print("  :*M<X|Y|Z><+|-><nnn>  Mover un motor (pasos relativos)\r\n");
+    USB_Print("  :*G<A|C>           Garra: Abrir / Cerrar\r\n");
+    USB_Print("-- Ayuda --\r\n");
+    USB_Print("  :-?         Esta lista | :-?<Letra> ejemplo (ej :-?V)\r\n");
+}
+
+// CAPA 2 de la ayuda: ejemplo concreto de un comando puntual.
+void Robot_ComandoEjemplo(char c){
+    switch (c) {
+        case 'H': USB_Print("Ej :-H   -> Homing: referencia los 3 ejes\r\n"); break;
+        case 'Z': USB_Print("Ej :-Z   -> fija la posicion actual como (0,0,0)\r\n"); break;
+        case 'A': USB_Print("Ej :-A120 -> apertura de garra = 120 grados\r\n"); break;
+        case 'P': USB_Print("Ej :-P030 -> cierre de garra = 30 grados\r\n"); break;
+        case 'E': USB_Print("Ej :-E1 (torque ON) / :-E0 (torque OFF)\r\n"); break;
+        case 'V': USB_Print("Ej :-V050 -> velocidad global 50% (rango 010..100)\r\n"); break;
+        case 'S': USB_Print("Ej :-S   -> PARO de emergencia (liberar con :-R)\r\n"); break;
+        case 'R': USB_Print("Ej :-R   -> rearma tras un E-STOP\r\n"); break;
+        case 'I': USB_Print("Ej :-I   -> handshake, responde TAILS USB OK\r\n"); break;
+        case '#': USB_Print("Ej :#X200Y150Z050V050|C -> mover XYZ, vel 50%, cerrar garra\r\n"); break;
+        case 'M': USB_Print("Ej :*MX+100 -> (TEST) mueve X +100 pasos | :*MZ-050\r\n"); break;
+        case 'L': USB_Print("Ej :*LH1 -> (TEST) LED Home ON | :*LW0 -> LED Wait OFF\r\n"); break;
+        case 'G': USB_Print("Ej :*GA -> (TEST) abrir garra | :*GC -> cerrar garra\r\n"); break;
+        default : USB_Print("Sin ejemplo para ese comando. Envie :-? para la lista.\r\n"); break;
+    }
 }
 
 uint8_t Robot_ModoCalibracion(void){
@@ -213,7 +250,18 @@ uint8_t Robot_ModoCalibracion(void){
           return 0;
       }
 
-      // 8. HANDSHAKE / IDENTIFICACIÓN (:-I)
+      // 8. AYUDA DE COMANDOS EN 2 CAPAS (:-? lista, :-?<Letra> ejemplo)
+      else if (buffer_rx[2] == '?'){
+          char sel = buffer_rx[3];
+          if (sel == '\0' || sel == '\r' || sel == '\n') {
+              Robot_Consignas();          // CAPA 1: lista completa
+          } else {
+              Robot_ComandoEjemplo(sel);  // CAPA 2: ejemplo puntual
+          }
+          return 0;
+      }
+
+      // 9. HANDSHAKE / IDENTIFICACIÓN (:-I)
       // Lo envía la interfaz al conectar. Respondemos identificación y mostramos
       // un aviso temporal en el LCD de que se estableció la comunicación USB.
       else if (buffer_rx[2] == 'I'){

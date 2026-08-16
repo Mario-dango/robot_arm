@@ -4,6 +4,13 @@
 
 #include "robot_defines.h"
 
+// --- Secciones críticas (preparación para solución robusta) ---
+// HOY SON NO-OP (vacías: no compilan a ningún código). Protegen las escrituras
+// de campos del motor que comparten moveMotors (contexto main) y la ISR de TIM2
+// (Motor_Timer_Callback). Para activar la protección real, descomentar el cuerpo.
+#define MOTOR_ENTER_CRITICAL()   /* __disable_irq(); */
+#define MOTOR_EXIT_CRITICAL()    /* __enable_irq(); */
+
 // --- Variables Externas ---
 // Prometemos que existen en main.c o motor_driver.c
 extern StepperMotor motors[NUM_MOTORS];

@@ -83,6 +83,8 @@ void moveMotors(StepperMotor *motor, int *newPosition, int *velocity) {
     }
 
     // 3. Lógica de Arranque
+    // Protegemos las escrituras compartidas con la ISR de TIM2 (hoy no-op).
+    MOTOR_ENTER_CRITICAL();
     if (motor->targetVelocity > 0) {
         // Calcular dirección
         if (motor->currentPosition < motor->newPosition){
@@ -100,8 +102,8 @@ void moveMotors(StepperMotor *motor, int *newPosition, int *velocity) {
                 motor->velocity = motor->minVelocity;
             }
 
-            // Calculamos el primer intervalo inmediatamente
-            motor->stepInterval = TIMER_FREQUENCY / motor->velocity;
+            // Calculamos el primer intervalo inmediatamente (guarda contra div/0)
+            motor->stepInterval = (motor->velocity > 0) ? (TIMER_FREQUENCY / motor->velocity) : 0;
 
         } else {
              // Ya estamos en el lugar
@@ -115,6 +117,7 @@ void moveMotors(StepperMotor *motor, int *newPosition, int *velocity) {
         motor->stepInterval = 0;
         motor->stopFlag = 1;
     }
+    MOTOR_EXIT_CRITICAL();
 }
 
 // Algoritmo de Rampa Trapezoidal
@@ -132,7 +135,8 @@ void CalculateSpeed(StepperMotor *m) {
 
     // Calculamos cuántos pasos necesitamos para frenar desde la velocidad actual
     // Formula simplificada: (Vel_Actual - Vel_Min) / Aceleracion
-    long stepsToStop = (m->velocity - m->minVelocity) / m->accelRate;
+    // Guarda contra div/0 si accelRate no fue inicializado (0 => sin rampa de frenado).
+    long stepsToStop = (m->accelRate > 0) ? ((m->velocity - m->minVelocity) / m->accelRate) : 0;
 
     // --- FASE DE DESACELERACIÓN ---
     if (stepsRemaining <= stepsToStop) {

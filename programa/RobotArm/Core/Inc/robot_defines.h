@@ -43,11 +43,11 @@ typedef struct {
     volatile int currentPosition;        // Pasos actuales
     volatile int newPosition;            // Meta
     int stepCounter;            // Contador interno para el Timer
-    int stepInterval;           // Ticks del timer entre pasos
+    volatile int stepInterval;  // Ticks del timer entre pasos (compartido con ISR TIM2)
     volatile int stopFlag;      // 1 = Detenido, 0 = Moviéndose
 
     // --- CAMPOS PARA RAMPAS ---
-    int targetVelocity;  // Velocidad Objetivo
+    volatile int targetVelocity;  // Velocidad Objetivo (compartido con ISR TIM2)
     int minVelocity;     // Velocidad de Arranque
     int accelRate;       // Tasa de aceleración
     int stepsToDecel;    // Cálculo interno

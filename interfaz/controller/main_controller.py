@@ -72,6 +72,46 @@ class MainController:
         self.view.action_about.triggered.connect(self.show_about)
         self.view.action_kawaii.toggled.connect(self.view.toggle_kawaii_mode)
 
+        # Ayuda de comandos del firmware (2 capas, se ve por consola)
+        self.view.action_cmd_list.triggered.connect(self.show_command_list)
+        self.view.action_cmd_example.triggered.connect(self.show_command_example)
+
+        # Panel de Test / Diagnóstico
+        self.view.action_test_panel.triggered.connect(self.open_test_panel)
+        self._test_panel = None
+
+    # --- AYUDA DE COMANDOS (pide al firmware que imprima por consola) ---
+    def show_command_list(self):
+        """CAPA 1: pide al STM32 la lista completa de comandos (:-?)."""
+        self.connection_mgr.log_console("INFO", "Solicitando lista de comandos al STM32 (:-?)…")
+        self.connection_mgr.send_command(":-?")
+
+    def show_command_example(self):
+        """CAPA 2: elige un comando y pide su ejemplo (:-?<Letra>)."""
+        from PyQt5.QtWidgets import QInputDialog
+        items = [
+            "H — Homing", "Z — Set Zero", "A — Apertura garra", "P — Cierre garra",
+            "E — Enable motores", "V — Velocidad global", "S — Stop (E-STOP)",
+            "R — Rearmar", "I — Handshake", "# — Mover (ejecución)",
+            "M — Test motor", "L — Test LED", "G — Test garra",
+        ]
+        eleccion, ok = QInputDialog.getItem(
+            self.view, "Ejemplo de comando",
+            "Elegí el comando para ver un ejemplo en la consola:", items, 0, False)
+        if ok and eleccion:
+            letra = eleccion.split(" ")[0]  # el primer token es la letra/símbolo
+            self.connection_mgr.log_console("INFO", f"Solicitando ejemplo de '{letra}' (:-?{letra})…")
+            self.connection_mgr.send_command(f":-?{letra}")
+
+    # --- PANEL DE TEST / DIAGNÓSTICO ---
+    def open_test_panel(self):
+        """Abre (o trae al frente) la ventana de test de hardware."""
+        from view.test_panel import TestPanel
+        if self._test_panel is None:
+            self._test_panel = TestPanel(self.connection_mgr.send_command, parent=self.view)
+        self._test_panel.show()
+        self._test_panel.raise_()
+        self._test_panel.activateWindow()
 
     # --- SINCRONIZACIÓN DE PARO DE EMERGENCIA (robot -> interfaz) ---
     def handle_estop_engaged(self):
@@ -97,6 +137,7 @@ class MainController:
         self.view.btn_rearm.setStyleSheet("")
         self.view.btn_rearm.setText("Rearmar (:-R)")
         self.view.lbl_status_wait.setText("WAIT / BUSY")
+
     # --- FUNCIONES DE ALERTAS VISUALES GLOBALES ---
     def handle_finish_blink(self):
         """Hace parpadear el LED de FINISH al terminar una rutina"""
@@ -155,11 +196,37 @@ class MainController:
     # --- FUNCIONES DE LA BARRA DE AYUDA ---
     def show_manual(self):
         instrucciones = (
-            "<b>Guía rápida de T.A.I.L.S.</b><br><br>"
-            "<b>1. Calibración:</b> Asegúrate de hacer 'Home' antes de mover el robot.<br>"
-            "<b>2. Aprendizaje:</b> Usa las flechas para mover el brazo. Haz clic en 'Guardar Punto' para crear una secuencia.<br>"
-            "<b>3. Ejecución:</b> Carga tu rutina guardada y presiona Play.<br><br>"
-            "<i>Nota: Si el indicador de sistema dice 'REQ. HOMING', ve a la pestaña de Calibración.</i>"
+            "<b>Manual de Usuario — T.A.I.L.S.</b><br><br>"
+
+            "<b>Conexión:</b> Elegí el puerto COM y presioná <b>Conectar</b>. Al conectar se "
+            "envía el handshake (<code>:-I</code>) y el robot informa por consola el estado del "
+            "LCD (dirección I2C detectada o si no responde).<br><br>"
+
+            "<b>1. Calibración:</b> Hacé <b>Home</b> (<code>:-H</code>) antes de operar. "
+            "Si el homing falla, el indicador <b>HOME</b> parpadea mostrando "
+            "<b>HOME FALLÓ</b> y la consola detalla el motivo (qué eje y por qué). "
+            "También podés fijar el cero actual con <b>Set Zero</b> (<code>:-Z</code>).<br>"
+
+            "<b>2. Aprendizaje:</b> Movés el brazo con las flechas (jogging), ajustás velocidad "
+            "e incremento, y con <b>Guardar Punto</b> armás la secuencia. Exportás a JSON.<br>"
+
+            "<b>3. Ejecución:</b> Cargás la rutina JSON y presionás <b>Play</b>.<br><br>"
+
+            "<b>Paro de Emergencia:</b> El botón <b>STOP EMERGENCIA</b> (o el pulsador físico) "
+            "frena el robot y <u>engancha un bloqueo</u>. La interfaz lo detecta por telemetría: "
+            "<b>detiene la secuencia automáticamente</b> y resalta el botón <b>¡REARMAR!</b>. "
+            "Para salir del bloqueo, presioná <b>Rearmar</b> (<code>:-R</code>) y volvé a hacer Home.<br><br>"
+
+            "<b>Herramientas → Panel de Test / Diagnóstico:</b> ventana para probar el hardware "
+            "pieza por pieza: prender/apagar cada LED y mover cada motor de forma independiente. "
+            "Ideal para verificar conexiones sin cargar una rutina.<br><br>"
+
+            "<b>Ayuda → Comandos del STM32:</b> imprime en la consola la lista de comandos que "
+            "interpreta el firmware. <b>Ayuda → Ejemplo de un comando…</b> muestra un ejemplo "
+            "concreto del comando que elijas.<br><br>"
+
+            "<i>Nota: si el indicador de sistema dice 'REQ. HOMING' o 'HOME FALLÓ', andá a la "
+            "pestaña de Calibración y hacé Home.</i>"
         )
         QMessageBox.information(self.view, "Manual de Usuario", instrucciones)
 

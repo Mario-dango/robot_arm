@@ -205,14 +205,27 @@ class View(QMainWindow):
 
     def setup_menu_bar(self):
         menu_bar = self.menuBar()
+
+        # --- MENÚ HERRAMIENTAS (al lado de Ayuda): panel de test/diagnóstico ---
+        tools_menu = menu_bar.addMenu("Herramientas")
+        self.action_test_panel = tools_menu.addAction("Panel de Test / Diagnóstico")
+
+        # --- MENÚ AYUDA ---
         help_menu = menu_bar.addMenu("Ayuda")
-        
+
         self.action_manual = help_menu.addAction("Manual de Usuario")
+
+        # Ayuda de comandos del firmware, en 2 capas (se ven por consola)
+        help_menu.addSeparator()
+        self.action_cmd_list = help_menu.addAction("Comandos del STM32 (lista en consola)")
+        self.action_cmd_example = help_menu.addAction("Ejemplo de un comando… (consola)")
+
+        help_menu.addSeparator()
         self.action_kawaii = help_menu.addAction("Modo Kawaii (Iconos)")
-        self.action_kawaii.setCheckable(True) 
-        self.action_kawaii.setChecked(True)   
-        
-        help_menu.addSeparator() 
+        self.action_kawaii.setCheckable(True)
+        self.action_kawaii.setChecked(True)
+
+        help_menu.addSeparator()
         self.action_about = help_menu.addAction("Acerca de T.A.I.L.S.")
 
     def set_btn_icon(self, item, icon_name, size=64):

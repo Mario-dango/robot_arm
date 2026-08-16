@@ -4,7 +4,9 @@ Este directorio contiene la **Interfaz Gráfica de Usuario (GUI)** del sistema T
 
 Siguiendo el patrón **MVC**, esta capa es "tonta": no contiene lógica de negocio, no controla el robot y no toma decisiones. Su única responsabilidad es dibujar los botones, paneles y gráficos en la pantalla, y exponer estos elementos para que el **Controlador** pueda conectarles funciones.
 
-La interfaz se ha modularizado en **6 archivos** para facilitar el mantenimiento y la edición de diseño:
+La interfaz se ha modularizado en **7 archivos** para facilitar el mantenimiento y la edición de diseño:
+
+> ➕ **`test_panel.py` (Panel de Test / Diagnóstico):** ventana emergente (`QDialog`) accesible desde el menú **Herramientas**. Permite prender/apagar cada LED y mover cada motor de forma independiente y relativa (comandos `:*`), más abrir/cerrar la garra y togglear el torque. Incluye una guía rápida; los resultados se ven en la consola inferior. Es autocontenida: recibe la función `send_cmd` y cablea sus propios botones.
 
 ---
 

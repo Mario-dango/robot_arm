@@ -16,7 +16,7 @@
 extern uint8_t robotCalibrated;
 extern StepperMotor motors[];
 extern char buffer_rx[40];
-extern char buffer_tx[60];
+extern char buffer_tx[80];
 extern char buffer_data[4][6];
 extern uint8_t estadoGarra; // Definida en gripper_driver.c ahora, o si la dejaste en main.c
 extern int homeStatus;      // La usabas en main.c, quizás debas definirla aquí o traerla con extern

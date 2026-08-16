@@ -97,8 +97,11 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PBPin PBPin PBPin PBPin */
-  GPIO_InitStruct.Pin = StopM_X_Pin|StopM_Y_Pin|StopM_Z_Pin;
+  /*Configure GPIO pins : fines de carrera (X/Y/Z) + botón de PARO DE EMERGENCIA.
+    STOP_btn_Pin (PB15) faltaba: sin esto la línea EXTI15 nunca se habilitaba y el
+    botón físico jamás disparaba la interrupción => el E-STOP no funcionaba.
+    SW2 (STOP_EM) es un push NO con debounce: reposo HIGH (pull-up), pulsado = falling. */
+  GPIO_InitStruct.Pin = StopM_X_Pin|StopM_Y_Pin|StopM_Z_Pin|STOP_btn_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);

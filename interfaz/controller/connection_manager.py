@@ -157,7 +157,13 @@ class ConnectionManager:
     def process_serial_data(self, data):
         """Traduce la cadena STATUS|X:100... que manda el STM32 y actualiza la pantalla"""
         if not data.startswith("STATUS"):
-            self.log_console("RX", data) 
+            self.log_console("RX", data)
+            # Feedback visual del resultado del homing (además del texto en consola)
+            low = data.lower()
+            if "homing error" in low or "abortado" in low:
+                self.app.notify_homing_failed(data)
+            elif "homing ok" in low:
+                self.app.notify_homing_ok()
 
         if data.startswith("STATUS|"):
             try:
@@ -180,6 +186,24 @@ class ConnectionManager:
                 if len(parts) > 5:
                     is_calibrated = (parts[5].split(':')[1] == '1')
                     is_moving = (parts[6].split(':')[1] == '1')
+
+                # 3b. PARO DE EMERGENCIA (campo E:). Lo buscamos por nombre para ser
+                # compatible con firmware viejo que no lo enviaba (queda en False).
+                is_estop = False
+                for p in parts[5:]:
+                    if p.startswith('E:'):
+                        is_estop = (p.split(':')[1] == '1')
+
+                # Detectamos el FLANCO: si el robot entró (o salió) del bloqueo por
+                # paro —tanto por el botón físico como por :-S—, avisamos al Jefe para
+                # que frene la secuencia de ejecución por su cuenta.
+                prev_estop = getattr(self.app, 'estop_active', False)
+                if is_estop != prev_estop:
+                    self.app.estop_active = is_estop
+                    if is_estop:
+                        self.app.handle_estop_engaged()
+                    else:
+                        self.app.handle_estop_cleared()
                 
                 # --- ACTUALIZAR LA INTERFAZ ---
                 

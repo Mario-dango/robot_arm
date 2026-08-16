@@ -134,6 +134,19 @@ class ExecutionManager:
         else:
             self.log("INFO", "Ejecución de software detenida (Hardware desconectado).")
 
+    def halt_by_estop(self):
+        """Frena la ejecución porque el robot entró en PARO DE EMERGENCIA (detectado
+        por telemetría, ej. botón físico). No reenvía :-S (el robot ya está frenado):
+        solo detiene el metrónomo de la interfaz para que no siga mandando pasos."""
+        if not self.is_executing:
+            return
+        self.is_executing = False
+        self.run_timer.stop()
+        self.execution_index = 0
+        self.view.progress_bar.setValue(0)
+        self.view.txt_run_log.append(
+            '<b style="color:#ff3333;">--- DETENIDO POR PARO DE EMERGENCIA ---</b>')
+
     # --- EL MOTOR DE EJECUCIÓN ---
     def execute_next_step(self):
         """Función llamada automáticamente por el QTimer para avanzar paso a paso"""

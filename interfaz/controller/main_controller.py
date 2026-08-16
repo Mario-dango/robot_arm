@@ -28,6 +28,7 @@ class MainController:
         # Todos los managers leerán y modificarán estas variables para saber dónde está el robot
         self.current_pos = {'x': 0, 'y': 0, 'z': 0}
         self.gripper_state = 'A' # A = Abierto, C = Cerrado
+        self.estop_active = False # Espejo del bloqueo E-STOP del robot (campo E: de la telemetría)
 
         # 3. --- GESTIÓN DE RUTAS BASE ---
         base_path = os.getcwd()
@@ -48,6 +49,7 @@ class MainController:
         self.alert_timer = QTimer()
         self.alert_timer.timeout.connect(self.handle_home_alert_blink)
         self.alert_blink_state = False
+        self.homing_failed = False # True si el firmware reportó un error de homing
 
         # 5. --- INICIALIZACIÓN DE MANAGERS ---
         # Aquí le pasamos 'self' (este controlador entero) a cada manager.
@@ -70,6 +72,31 @@ class MainController:
         self.view.action_about.triggered.connect(self.show_about)
         self.view.action_kawaii.toggled.connect(self.view.toggle_kawaii_mode)
 
+
+    # --- SINCRONIZACIÓN DE PARO DE EMERGENCIA (robot -> interfaz) ---
+    def handle_estop_engaged(self):
+        """El robot entró en PARO (botón físico o :-S). Frenamos la secuencia de la
+        interfaz aunque el paro no haya salido de ella, y resaltamos 'Rearmar'."""
+        # 1. Frenar la ejecución automática si estaba corriendo
+        if hasattr(self, 'execution_mgr'):
+            self.execution_mgr.halt_by_estop()
+        # 2. Avisar por consola
+        if hasattr(self, 'connection_mgr'):
+            self.connection_mgr.log_console("ALERTA", "PARO DE EMERGENCIA ACTIVO. Secuencia detenida. Enviá :-R (Rearmar) para continuar.")
+        # 3. Resaltar el botón Rearmar (parpadeo llamativo vía estilo)
+        self.view.btn_rearm.setStyleSheet(
+            "background-color: #d32f2f; color: white; font-weight: bold; border: 2px solid #ff5252;")
+        self.view.btn_rearm.setText("¡REARMAR! (:-R)")
+        # 4. Marcar el badge WAIT como bloqueo
+        self.view.lbl_status_wait.setText("E-STOP")
+
+    def handle_estop_cleared(self):
+        """El robot salió del PARO (tras :-R). Restauramos la interfaz."""
+        if hasattr(self, 'connection_mgr'):
+            self.connection_mgr.log_console("INFO", "Paro liberado. Recordá recalibrar (Home) antes de operar.")
+        self.view.btn_rearm.setStyleSheet("")
+        self.view.btn_rearm.setText("Rearmar (:-R)")
+        self.view.lbl_status_wait.setText("WAIT / BUSY")
     # --- FUNCIONES DE ALERTAS VISUALES GLOBALES ---
     def handle_finish_blink(self):
         """Hace parpadear el LED de FINISH al terminar una rutina"""
@@ -88,15 +115,42 @@ class MainController:
             self.view.lbl_status_finish.style().unpolish(self.view.lbl_status_finish)
             self.view.lbl_status_finish.style().polish(self.view.lbl_status_finish)
 
+    def start_home_alert(self):
+        """Arranca el parpadeo del indicador HOME (robot sin calibrar)."""
+        if not self.alert_timer.isActive():
+            self.alert_timer.start(500)
+
+    def stop_home_alert(self):
+        """Detiene el parpadeo del indicador HOME (robot ya calibrado)."""
+        if self.alert_timer.isActive():
+            self.alert_timer.stop()
+        self.alert_blink_state = False
+        self.homing_failed = False # Al calibrar bien, se borra el estado de error
+
+    def notify_homing_failed(self, msg):
+        """El firmware reportó un error de homing: log en rojo + parpadeo marcado."""
+        self.homing_failed = True
+        if hasattr(self, 'connection_mgr'):
+            self.connection_mgr.log_console("ERROR", f"FALLO DE HOMING → {msg}")
+        self.start_home_alert() # Aseguramos que el indicador HOME esté parpadeando
+
+    def notify_homing_ok(self):
+        """El firmware reportó homing exitoso."""
+        self.homing_failed = False
+        if hasattr(self, 'connection_mgr'):
+            self.connection_mgr.log_console("INFO", "Homing OK. Robot calibrado.")
+
     def handle_home_alert_blink(self):
-        """Hace parpadear el botón HOME en rojo si el robot pierde la calibración"""
+        """Hace parpadear el indicador HOME. Muestra 'HOME FALLÓ' si hubo un error de
+        homing, o 'REQ. HOMING' si simplemente falta calibrar."""
         self.alert_blink_state = not self.alert_blink_state
+        texto = "HOME FALLO" if self.homing_failed else "REQ. HOMING"
         if self.alert_blink_state:
-            self.view.lbl_status_home.setStyleSheet("background-color: #d32f2f; color: white; border-radius: 4px; border: 1px solid #ff5252;") 
-            self.view.lbl_status_home.setText("REQ. HOMING")
+            self.view.lbl_status_home.setStyleSheet("background-color: #d32f2f; color: white; border-radius: 4px; border: 1px solid #ff5252;")
+            self.view.lbl_status_home.setText(texto)
         else:
             self.view.lbl_status_home.setStyleSheet("background-color: #333; color: #555; border-radius: 4px; border: 1px solid #444;")
-            self.view.lbl_status_home.setText("HOME")
+            self.view.lbl_status_home.setText(texto)
 
     # --- FUNCIONES DE LA BARRA DE AYUDA ---
     def show_manual(self):

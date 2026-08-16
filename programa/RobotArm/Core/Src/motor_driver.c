@@ -191,6 +191,13 @@ static int RunHomingSequence(int motorIndex, int velocity, int direction) {
         GPIO_PinState pinState = (dirSalida == 0) ? GPIO_PIN_SET : GPIO_PIN_RESET;
         HAL_GPIO_WritePin(motors[motorIndex].dirPort, motors[motorIndex].dirPin, pinState);
 
+        // Objetivo lejano: correr a velocidad constante hasta que el sensor libere,
+        // sin que CalculateSpeed frene por alcanzar newPosition (bug de homing).
+        motors[motorIndex].targetVelocity = velocity;
+        motors[motorIndex].newPosition = (dirSalida == DIR_TOWARDS_HOME)
+                ? (motors[motorIndex].currentPosition - HOMING_FAR_STEPS)
+                : (motors[motorIndex].currentPosition + HOMING_FAR_STEPS);
+
         motors[motorIndex].stopFlag = 0; // Moverse
 
         // Esperar hasta que el sensor SE SUELTE (deje de estar presionado)
@@ -218,6 +225,14 @@ static int RunHomingSequence(int motorIndex, int velocity, int direction) {
 
     GPIO_PinState pinState = (direction == 0) ? GPIO_PIN_SET : GPIO_PIN_RESET;
     HAL_GPIO_WritePin(motors[motorIndex].dirPort, motors[motorIndex].dirPin, pinState);
+
+    // Objetivo lejano en la dirección de home: el motor corre a velocidad constante
+    // hasta que lo detenga el SENSOR, sin frenar por igualar newPosition (bug de
+    // homing tras mover/rearmar, cuando currentPosition venía de un movimiento previo).
+    motors[motorIndex].targetVelocity = velocity;
+    motors[motorIndex].newPosition = (direction == DIR_TOWARDS_HOME)
+            ? (motors[motorIndex].currentPosition - HOMING_FAR_STEPS)
+            : (motors[motorIndex].currentPosition + HOMING_FAR_STEPS);
 
     motors[motorIndex].stopFlag = 0; // START
 

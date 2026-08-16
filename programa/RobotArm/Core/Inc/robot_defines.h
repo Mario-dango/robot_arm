@@ -22,6 +22,11 @@
 // --- PARÁMETROS DE SEGURIDAD (AGREGADO) ---
 #define HOMING_BACKOFF_STEPS 5 // Pasos que retrocede para liberar el sensor
 
+// Objetivo "lejano" para el homing: el motor debe correr a velocidad constante
+// hasta que lo detenga el SENSOR, no la posición. Fijamos newPosition a esta
+// distancia para que CalculateSpeed no frene el motor antes de llegar al sensor.
+#define HOMING_FAR_STEPS 1000000L
+
 // ESTADOS DEL ROBOT
 #define STATE_IDLE      0  // Normal, esperando comandos
 #define STATE_HOMING    1  // En proceso de calibración
